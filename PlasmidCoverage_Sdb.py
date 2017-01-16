@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 ## Last update: 14/1/2017
+## Author: T.F. Jesus
 
 #import sys
 import argparse
@@ -23,11 +24,6 @@ from datetime import datetime
 #4) delete unsorted BAM files
 #5) Create directory structure to store all comparisons.
 
-#except IndexError:
-#	print "Usage: PlasmidCoverage.py <PlasmidDir> <ReadsDir>"
-#	print "Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir"
-#	print "jcarrico@fm.ul.pt - 23/10/2013"
-#	raise SystemExit
 
 parser = argparse.ArgumentParser(description="Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir")
 parser.add_argument('-p','--plasmid', dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas')
