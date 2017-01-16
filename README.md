@@ -1,11 +1,13 @@
 # PlasmidCoverage_Sdb.py
 Initial tests in finding plasmid coverages from reads and inferring plasmid contents
 
-For now, this developing branch of this repo provide two versions of the same script.
+For now, this developing branch of this repo provide two versions of the same script:
 
-Version PlasmidCoverage.py maps against only one plasmid sequence.
+*Version PlasmidCoverage.py maps against only one plasmid sequence.
 
-Version PlasmidCoverage_Sdb.py allows users to compile multiple fastas into one or having one multi-fasta file to calculate plasmid coverage. 
+*Version PlasmidCoverage_Sdb.py allows users to compile multiple fastas into one or having one multi-fasta file to calculate plasmid coverage. 
+
+In both versions, .gb files are also supported. These files will be converted into fasta files in a subdirectory named "fasta" within the directory the user specifies for plasmid.
 
 ###Options for PlasmidCoverage_Sdb.py:
 
