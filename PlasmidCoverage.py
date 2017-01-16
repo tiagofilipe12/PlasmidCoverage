@@ -1,4 +1,9 @@
-import sys
+#!/usr/bin/env python
+
+## Last update: 3/1/2017
+
+#import sys
+import argparse
 import os
 import re
 import numpy as np
@@ -11,15 +16,25 @@ from shutil import copyfile
 from time import time
 from datetime import datetime
 
-try:
-	plasmid_dir = sys.argv[1]
-	read_dir = sys.argv[2]
 
-except IndexError:
-	print "Usage: PlasmidCoverage.py <PlasmidDir> <ReadsDir>"
-	print "Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir"
-	print "jcarrico@fm.ul.pt - 23/10/2013"
-	raise SystemExit
+## sys old arguments
+#try:
+#	plasmid_dir = sys.argv[1]
+#	read_dir = sys.argv[2]
+
+#except IndexError:
+#	print "Usage: PlasmidCoverage.py <PlasmidDir> <ReadsDir>"
+#	print "Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir"
+#	print "jcarrico@fm.ul.pt - 23/10/2013"
+#	raise SystemExit
+
+parser = argparse.ArgumentParser(description="Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir")
+parser.add_argument('-p','--Plasmid', dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas')
+parser.add_argument('-r','--Read', dest='read_dir', required=True, help='Provide the path to the directory containing reads fastas')
+#Currently not implemented#
+#parser.add_argument('--out', dest='out_fmt', default="all", choices=["html","csv", "terminal", "all"] , help='Specify the output format you wish')
+# May be parse some arguments to bowtie2? #
+args = parser.parse_args()
 
 plasmid_idx_list=[]
 plasmid_length={}
@@ -29,7 +44,7 @@ plasmid_list=[]
 pidx2name={}
 
 def ExtractPlasmidNameFromFasta(fasta_file):
-	print fasta_file
+	print(fasta_file)
 	if_handle=open(fasta_file,'r')
 	fastadata=SeqIO.read(if_handle,"fasta")
 	pieces = fastadata.description.split('|')
@@ -42,30 +57,35 @@ def ExtractPlasmidNameFromFasta(fasta_file):
 
 def ExtractFastaPlasmids(gbkfile,fastafile,plasmid_length):
 	if_handle=open(gbkfile,'r')
-	gbkdata=SeqIO.read(if_handle, "genbank")
+	gbkdata=SeqIO.read(zif_handle, "genbank")
 	out_handle=open(fasta_file,'w')
 	out_handle.write('>'+gbkdata.description+'\n')
-	out_handle.write(gbkdata.seq.tostring())
+	out_handle.write(str(gbkdata.seq))
 	if_handle.close() 
 	out_handle.close()
 	plasmid_name=ExtractPlasmidNameFromFasta(fasta_file)
-	plasmid_length[plasmid_name]=len(gbkdata.seq.tostring())
+	plasmid_length[plasmid_name]=len(str(gbkdata.seq))
 	return plasmid_length
-	print " Wrote fasta file: "+fastafile
+	print(" Wrote fasta file: "+ fastafile)
+
 
 def SequenceLengthFromFasta(fasta_file,plasmid_length):
 	if_handle=open(fasta_file,'r')
 	fastadata=SeqIO.read(if_handle,"fasta")
 	plasmid_name=ExtractPlasmidNameFromFasta(fasta_file)
-	plasmid_length[plasmid_name]=len(fastadata.seq.tostring())
+	plasmid_length[plasmid_name]=len(str(fastadata.seq))
 	if_handle.close()
 	return plasmid_length 
 
 def CreateBowtieIdx(filename,pidx2name):
+	if not os.path.exists(dirname + "/bowtie2idx/"):		
+		os.makedirs(dirname + "/bowtie2idx/")
+	else:
+		pass	
 	idx_file=os.path.join(dirname,'bowtie2idx/',os.path.splitext(filename)[0])+'.idx'
 	fasta_file = os.path.join(dirname,'fasta/',os.path.splitext(filename)[0])+'.fasta'
 	if not(os.path.exists(idx_file)):
-		print "Creating " + idx_file 
+		print("Creating " + idx_file)
 		#Create bowtie index 			
 		call('bowtie2-build -q '+ fasta_file +' '+idx_file, shell=True)
 		plasmid_name=ExtractPlasmidNameFromFasta(fasta_file)
@@ -82,9 +102,9 @@ def CreateBowtieIdx(filename,pidx2name):
 
 ############# PLASMIDS ##################
 print "========================================================================="
-print "Processing Plasmids in "+ plasmid_dir
+print "Processing Plasmids in "+ args.plasmid_dir
 pct=0;
-for dirname, dirnames, filenames in os.walk(plasmid_dir):
+for dirname, dirnames, filenames in os.walk(args.plasmid_dir):
 	for filename in filenames:
 		#if it is a genebank file
 		if filename.find('gb')!=-1:
@@ -92,6 +112,10 @@ for dirname, dirnames, filenames in os.walk(plasmid_dir):
 			print "Plasmid file found:"+ filename
 			print "#:"+str(pct)
 			gbfile = os.path.join(dirname, filename)
+			if not os.path.exists(dirname + "/fasta/"):		
+				os.makedirs(dirname + "/fasta/")
+			else:
+				pass				
 			fasta_file = os.path.join(dirname,'fasta/',filename[:-len('.gb')])+'.fasta'
 
 			if not(os.path.exists(fasta_file)):
@@ -137,7 +161,7 @@ print "=========================================================================
 print 
 
 ### READS#########################
-for dirname, dirnames, filenames in os.walk(read_dir):
+for dirname, dirnames, filenames in os.walk(args.read_dir):
 	for subdirname in dirnames:
 		for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,subdirname)):
 			for filename in filenames2:
@@ -159,7 +183,7 @@ for dirname, dirnames, filenames in os.walk(read_dir):
 						reads_file=os.path.join(dirname2,filename)
 						btc ='bowtie2 -x '+plasmid_idx+' -U '+reads_file+' -p 3 -5 15 -S '+sam_file
 						print "1) " + btc
-						proc1=Popen(btc, stdout = PIPE, stderr = PIPE, shell=True)
+						proc1=Popen(btc, stdout = PIPE, stderr = PIPE, shell=True) #este input pode ser dado como uma lista ao Popen
 						out,err= proc1.communicate()
 						print err
 						regex_match=re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate',err)
@@ -173,22 +197,22 @@ for dirname, dirnames, filenames in os.walk(read_dir):
 							call('samtools faidx '+fasta_file, shell=True)
 
 							bam_file = sam_file[:-3]+'bam'
-							print "3) " + 'samtools view -b -S -t '+fasta_file+'.fai -o '+bam_file+' '+sam_file
+							print("3) " + 'samtools view -b -S -t '+fasta_file+'.fai -o '+bam_file+' '+sam_file)
 							call('samtools view -b -S -t '+fasta_file+'.fai -o '+bam_file+' '+sam_file, shell=True)
-							call('rm -f '+sam_file,shell=True)
+							call('rm -f '+sam_file, shell=True)
 
-							sorted_bam_file = bam_file[:-3]+'sorted'
-							print "4) "+ 'samtools sort '+ bam_file +' '+sorted_bam_file
-							call('samtools sort '+ bam_file +' '+sorted_bam_file, shell=True)
+							sorted_bam_file = bam_file[:-3]+'sorted.bam'
+							print("4) "+ 'samtools sort'+' -o '+sorted_bam_file+ ' ' + bam_file)
+							call('samtools sort'+' -o '+sorted_bam_file+ ' ' + bam_file, shell=True)
 
-							print "5)" + 'samtools index '+sorted_bam_file+'.bam'
-							call('samtools index '+sorted_bam_file+'.bam', shell=True)
+							print("5)" + 'samtools index '+sorted_bam_file)
+							call('samtools index '+sorted_bam_file, shell=True)
 
-							print "6) " + 'samtools depth '+sorted_bam_file+'.bam'
+							print("6) " + 'samtools depth '+sorted_bam_file)
 							depth_file = sorted_bam_file+'_depth.txt'
-							print "Creating coverage Depth File: " + depth_file
-							proc2=Popen('samtools depth '+sorted_bam_file+'.bam >'+ depth_file, stdout = PIPE, stderr = PIPE, shell=True)
-							print "done"
+							print("Creating coverage Depth File: " + depth_file)
+							proc2=Popen('samtools depth '+sorted_bam_file + ' > '+ depth_file, stdout = PIPE, stderr = PIPE, shell=True)
+							print("done")
 							out2,err2 = proc2.communicate()
 							#print "--out2--"
 							#print out2
@@ -203,7 +227,7 @@ for dirname, dirnames, filenames in os.walk(read_dir):
 							output_values[fn,plasmid_name]['plasmid_length']=plasmid_length[plasmid_name]
 
 						else:
-							print "No reads were aligned"
+							print("No reads were aligned")
 							output_values[fn,plasmid_name]['n_bases_covered']='na'
 							output_values[fn,plasmid_name]['alignment_rate']='na'
 							output_values[fn,plasmid_name]['mean_depth']='na'
@@ -211,7 +235,7 @@ for dirname, dirnames, filenames in os.walk(read_dir):
 							output_values[fn,plasmid_name]['min_depth']='na'
 							output_values[fn,plasmid_name]['max_depth']='na'
 							output_values[fn,plasmid_name]['plasmid_length']=plasmid_length[plasmid_name]
-						print "######################################"
+						print("######################################")
 						print
 
 
@@ -236,8 +260,8 @@ for strain in strain_list:
 			percent_mapped=float(output_values[strain,plasmid]['n_bases_covered'])/float(output_values[strain,plasmid]['plasmid_length'])
 			row+=["%2.3f" % percent_mapped]
 	Result_table_cov_perc.add_row(row)
-print "==============>   Coverage Percentage Table <==============" 
-print Result_table_cov_perc
+print("==============>   Coverage Percentage Table <==============")
+print(Result_table_cov_perc)
 fh.write("<H1>Coverage Percentage Table</H1>")
 fh.write(Result_table_cov_perc.get_html_string())
 
@@ -253,8 +277,8 @@ for strain in strain_list:
 			mean_depth=float(output_values[strain,plasmid]['mean_depth'])
 			row+=["%2.3f" % mean_depth]
 	Result_table_mean_depth.add_row(row)
-print "==============>   Mean mapping depth Table <=============="
-print Result_table_mean_depth
+print("==============>   Mean mapping depth Table <==============")
+print(Result_table_mean_depth)
 
 fh.write("<H1>Mean mapping depth Table</H1>")
 fh.write(Result_table_mean_depth.get_html_string())
@@ -271,8 +295,8 @@ for strain in strain_list:
 			median_depth=float(output_values[strain,plasmid]['median_depth'])
 			row+=["%2.3f" % median_depth]
 	Result_table_median_depth.add_row(row)
-print "==============>   Median mapping depth Table <=============="
-print Result_table_median_depth
+print("==============>   Median mapping depth Table <==============")
+print(Result_table_median_depth)
 fh.write("<H1>Median mapping depth Table</H1>")
 fh.write(Result_table_median_depth.get_html_string())
 
