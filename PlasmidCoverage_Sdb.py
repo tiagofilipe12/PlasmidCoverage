@@ -1,12 +1,13 @@
 #!/usr/bin/env python
 
-## Last update: 14/1/2017
+## Last update: 15/1/2017
 ## Author: T.F. Jesus
 
 #import sys
 import argparse
 import os
 import re
+import operator
 #import numpy as np
 #import prettytable
 #import matplotlib.pyplot as plt
@@ -19,29 +20,9 @@ from datetime import datetime
 
 
 #TODO: 
-#1) Set a minnimun read threshold to avoid computation on less than x reads mapped
-#3)correct check for idx files
+#1) Set a minnimun read threshold to avoid computation on less than x reads mapped (depth_file?)
 #4) delete unsorted BAM files
 #5) Create directory structure to store all comparisons.
-
-
-parser = argparse.ArgumentParser(description="Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir")
-parser.add_argument('-p','--plasmid', dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas')
-parser.add_argument('-r','--read', dest='read_dir', required=True, help='Provide the path to the directory containing reads fastas')
-parser.add_argument('-t', '--threads', dest='threads', default="1", help="Specify the number of threads to be used by bowtie2")
-#add an option to filter low coverage reads from samtools depth
-#argument if depth files already exist for the alignment
-parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
-#Define the max number of alingments to the number of sequences
-parser.add_argument('-o','--output', dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. No need for file extension!')
-args = parser.parse_args()
-
-plasmid_length={}
-#output_values=defaultdict(dict)
-strain_list=[]
-pidx2name={}
-dblist=[]
-sam_dict={}
 
 def alignmaxnumber(max_align, dblist):
 	if max_align:
@@ -51,8 +32,8 @@ def alignmaxnumber(max_align, dblist):
 	return k_value
 
 def FolderExist(directory):
-#	if not directory.endswith("/"):
-#		directory = directory + "/"
+	if not directory.endswith("/"):
+		directory = directory + "/"
 	if not os.path.exists(os.path.join(directory)):		
 		os.makedirs(os.path.join(directory))
 		print os.path.join(directory) + " does not exist. One will be created..."
@@ -86,7 +67,7 @@ def FastaDict(fasta_file):
 
 def SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path):
 	fasta_dic = FastaDict(fasta_file)
-	out_handle = open(fasta_path + ".temp", 'w')
+	out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
 	for key in fasta_dic:
 		plasmid_length[key]=len(fasta_dic[key])
 		out_handle.write('>' + key + '\n' + fasta_dic[key] + '\n')
@@ -141,9 +122,9 @@ def FastaConcatenation(dblist):
 	return main_filename
 
 ## function to delete temporary fasta files
-def DelTemp(directory):
+def deltemp(directory):
 	files = os.listdir(directory)
-	print "Deleting temporary fasta files..."
+	print "Deleting temporary fasta files in: " + directory
 	for f in files:
 		if f.endswith('.temp'):
 			os.remove(os.path.join(directory,f))
@@ -179,11 +160,7 @@ def DepthFileReader(depth_file, plasmid_length):
 	for ref in depth_dic_coverage:
 		Percentage_BasesCovered[ref] = float(len(depth_dic_coverage[ref]))/float(plasmid_length[ref])
 		Mean[ref] = sum(depth_dic_coverage[ref].values())/len(depth_dic_coverage[ref])
-#		Mean[ref] = np.mean(depth_dic_numreads[ref])
-#		Median[ref] = np.median(depth_dic_numreads[ref])
-#		Minimum[ref] = np.min(depth_dic_numreads[ref])
-#		Maximum[ref] = np.max(depth_dic_numreads[ref])
-	return Percentage_BasesCovered, Mean #, Median, Minimum, Maximum
+	return Percentage_BasesCovered, Mean 
 
 
 
@@ -202,7 +179,7 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 				print "#:"+str(pct)
 				gbfile = os.path.join(dirname, filename)
 				FolderExist(os.path.join(dirname + "fasta"))			
-				fasta_file = os.path.join(dirname,'fasta/',filename[:-len('.gb')])+'.fasta'
+				fasta_file = os.path.join(dirname,'fasta',filename[:-len('.gb')])+'.fasta'
 				if not(os.path.exists(fasta_file)):
 					print "Fasta file not file. Converting..."
 					#If fasta not found Transform .gb to .fasta
@@ -211,12 +188,12 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 				else:
 					print "Fasta Found! No conversion needed"
 					# if there was a previous gb->fasta conversion
-					fasta_path = os.path.join(dirname,'fasta/',os.path.splitext(filename)[0])+'.fasta'
+					fasta_path = os.path.join(dirname,'fasta',os.path.splitext(filename)[0])+'.fasta'
 					plasmid_length=SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path)
 					fasta_file = fasta_path + ".temp"
 			elif any (x in filename for x in [".fas",".fasta",".fna",".fsa", ".fa"]):
 				#if it is a fasta file extension
-				FolderExist(dirname + "fasta/")	
+				FolderExist(os.path.join(dirname + "fasta"))	
 				pct+=1
 				print "Plasmid file (.fasta) found: "+ filename
 				print "#:"+str(pct)
@@ -225,7 +202,7 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 				print "Fasta Found! No conversion needed (.fasta)"
 					# if there was a previous .gb->.fasta conversion
 				plasmid_length=SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path)
-				fasta_file = fasta_path + ".temp"
+				fasta_file = os.path.join(fasta_path + ".temp")
 			else:
 				print "File extension not recognized! Are you sure this is a fasta or gb file? Extensions autorized are .gb, .fas, .fasta, .fna, .fsa or .fa"
 				
@@ -241,15 +218,34 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 	main_db = FastaConcatenation(dblist) 
 	return main_db
 
+## Argparser arguments
+
+parser = argparse.ArgumentParser(description="Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir")
+parser.add_argument('-p','--plasmid', dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas')
+parser.add_argument('-r','--read', dest='read_dir', required=True, help='Provide the path to the directory containing reads fastas')
+parser.add_argument('-t', '--threads', dest='threads', default="1", help="Specify the number of threads to be used by bowtie2")
+parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
+parser.add_argument('-o','--output', dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. No need for file extension!')
+parser.add_argument('-c','--cutoff', dest='cutoff_number', help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0-1.')
+
+args = parser.parse_args()
+
+## Lists and dictionaries
+
+plasmid_length={}
+strain_list=[]
+pidx2name={}
+dblist=[]
+sam_dict={}
 
 
 ## Process plasmids references into a single fasta
 
 maindb = PlasmidProcessing(dblist,args.plasmid_dir,plasmid_length)
-maindb_path = args.plasmid_dir + "fasta/" + maindb
+maindb_path = os.path.join(args.plasmid_dir + "fasta" + maindb)
 
 ## Deletes temporary fastas created during PlasmidProcessing function
-DelTemp(args.plasmid_dir + "fasta/")
+deltemp(os.path.join(args.plasmid_dir + "fasta"))
 
 ##Create Bowtie Idx files for plasmid references
 
@@ -257,6 +253,7 @@ idx_file=CreateBowtieIdx(maindb)
 
 ### READS#########################
 output_txt = open(args.output_name +".txt", "w")
+counter=0 # counter used to control output file
 for dirname, dirnames, filenames in os.walk(args.read_dir):
 	print(dirnames)
 	for subdirname in dirnames:
@@ -308,31 +305,43 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 						print("done")
 						out2,err2 = proc2.communicate()
 		
-		## Compute descritptive statistics and prints to tabular txt file
+			## Compute descritptive statistics and prints to tabular txt file
 			
 			Percentage_BasesCovered, Mean = DepthFileReader(depth_file, plasmid_length)
-			output_txt.write(fn + "\t" + ("\t").join(Percentage_BasesCovered) + "\nCoverage Percentage\t")
-			#COVERAGE PERCENTAGE
-			for element in Percentage_BasesCovered:
-				#print Percentage_BasesCovered, "Percentage"
-				output_txt.write(str(Percentage_BasesCovered[element]) +"\t")
-			#MEAN#
-			output_txt.write("\nMean mapping depth\t")
-			for element in Percentage_BasesCovered:
-				#print Percentage_BasesCovered, "Mean" 
-				output_txt.write(str(Mean[element]) + "\t")
-			#MEDIAN#
-#			output_txt.write("\nMedian mapping depth\t")
-#			for element in Reference_list:
-#				output_txt.write(str(Median[element]) + "\t")
-			#MAXIMUM#
-#			output_txt.write("\nMaximum mapping depth\t")
-#			for element in Reference_list:
-#				output_txt.write(str(Maximum[element]) + "\t")
-			#MINIMUM#
-#			output_txt.write("\nMinimum mapping depth\t")
-#			for element in Reference_list:
-#				output_txt.write(str(Minimum[element]) + "\t")
-			output_txt.write("\n")
+			if args.cutoff_number:
+			## Filtered output
+				tmp_list_k = []
+				tmp_list_v = []
+				if counter == 0:
+					output_txt.write("NOTE: this is not the complete output. In this output there will only be represented the plasmids with more than "+ args.cutoff_number + " coverage.\n\n")
+					counter=1					
+				print "something"
+				sorted_percCoverage_dic = sorted(Percentage_BasesCovered.items(), key=operator.itemgetter(1), reverse=True)
+				for k,v in sorted_percCoverage_dic:
+					if v >= float(args.cutoff_number):
+							tmp_list_k.append(k)
+							tmp_list_v.append(v)
+				## COVERAGE PERCENTAGE ##
+				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
+				for element in tmp_list_v:
+					output_txt.write(str(element) +"\t")
+				## MEAN ##
+				output_txt.write("\nMean mapping depth\t")
+				for element in tmp_list_k:
+					output_txt.write(str(Mean[element]) + "\t")
+
+				output_txt.write("\n")
+
+			else:
+				## COVERAGE PERCENTAGE ##
+				output_txt.write(fn + "\t" + ("\t").join(Percentage_BasesCovered) + "\nCoverage Percentage\t")
+				for element in Percentage_BasesCovered:
+					output_txt.write(str(Percentage_BasesCovered[element]) +"\t")
+				## MEAN ##
+				output_txt.write("\nMean mapping depth\t")
+				for element in Percentage_BasesCovered:
+					output_txt.write(str(Mean[element]) + "\t")
+
+				output_txt.write("\n")
 
 output_txt.close()
