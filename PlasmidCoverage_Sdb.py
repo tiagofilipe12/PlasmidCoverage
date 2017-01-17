@@ -7,7 +7,9 @@ import argparse
 import os
 import re
 import operator
-#import matplotlib.pyplot as plt
+import matplotlib
+matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
+import matplotlib.pyplot as plt
 from subprocess import Popen, PIPE, call
 from Bio import SeqIO
 from time import time
@@ -131,19 +133,19 @@ def deltemp(directory):
 
 ## Creates an alignment for each .sam file (per reads file) and outputs a dictionary with keys = reads and values = 
 ## Still not implemented
-def SamDictMultipleHits(samfile):
-	input_sam = open(samfile,"r+")
-	for line in input_sam:
-		if not line.startswith("@"):
-			tab_split = line.split("\t")
-			Read = tab_split[0]
-			Flag = tab_split[1]
-			Ref = tab_split[2]
-			Leftmost_pos = tab_split[3]
-			Seq_lenght = tab_split[9]
-			if Ref != "*":
-				sam_dict[Read]= [Flag, Ref, Leftmost_pos, Seq_lenght]
-	return sam_dict
+#def SamDictMultipleHits(samfile):
+#	input_sam = open(samfile,"r+")
+#	for line in input_sam:
+#		if not line.startswith("@"):
+#			tab_split = line.split("\t")
+#			Read = tab_split[0]
+#			Flag = tab_split[1]
+#			Ref = tab_split[2]
+#			Leftmost_pos = tab_split[3]
+#			Seq_lenght = tab_split[9]
+#			if Ref != "*":
+#				sam_dict[Read]= [Flag, Ref, Leftmost_pos, Seq_lenght]
+#	return sam_dict
 
 def DepthFileReader(depth_file, plasmid_length):
 	depth_info = open(depth_file, "r")
@@ -162,6 +164,11 @@ def DepthFileReader(depth_file, plasmid_length):
 		Mean[ref] = sum(depth_dic_coverage[ref].values())/len(depth_dic_coverage[ref])
 	return Percentage_BasesCovered, Mean 
 
+def bar_plot(X,Y):
+	fig = plt.figure()
+	plt.bar(X,Y)
+	plt.tick_params(axis='x', which='both', bottom='off',top='off',labelbottom='off')
+	fig.savefig(args.output_name + ".pdf")
 
 
 ############# PLASMIDS ##################
@@ -242,10 +249,10 @@ sam_dict={}
 ## Process plasmids references into a single fasta
 
 maindb = PlasmidProcessing(dblist,args.plasmid_dir,plasmid_length)
-maindb_path = os.path.join(args.plasmid_dir + "fasta" + maindb)
+maindb_path = os.path.join(args.plasmid_dir + "fasta/" + maindb)
 
 ## Deletes temporary fastas created during PlasmidProcessing function
-deltemp(os.path.join(args.plasmid_dir + "fasta"))
+deltemp(os.path.join(args.plasmid_dir + "fasta/"))
 
 ##Create Bowtie Idx files for plasmid references
 
@@ -277,7 +284,7 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 					proc1=Popen(btc, stdout = PIPE, stderr = PIPE, shell=True)
 					out,err= proc1.communicate()
 					print err
-					sam_parser = SamDictMultipleHits(sam_file)
+#					sam_parser = SamDictMultipleHits(sam_file)
 					regex_match=re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate',err)
 					alignment_rate=regex_match.group(0).split('%')[0]
 					print alignment_rate
@@ -289,7 +296,7 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 						bam_file = sam_file[:-3]+'bam'
 						print("3) " + 'samtools view -b -S -t '+maindb_path+'.fai'+' -@ ' +args.threads+' -o '+bam_file+' '+sam_file)
 						call('samtools view -b -S -t '+maindb_path+'.fai' +' -@ ' +args.threads+' -o '+bam_file+' '+sam_file, shell=True)
-						SamDictMultipleHits(sam_file)
+#						SamDictMultipleHits(sam_file)
 
 						sorted_bam_file = bam_file[:-3]+'sorted.bam'
 						print("4) "+ 'samtools sort'+ ' -@ ' +args.threads+' -o '+sorted_bam_file+ ' ' + bam_file)
@@ -308,15 +315,14 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 			## Compute descritptive statistics and prints to tabular txt file
 			
 			Percentage_BasesCovered, Mean = DepthFileReader(depth_file, plasmid_length)
+			sorted_percCoverage_dic = sorted(Percentage_BasesCovered.items(), key=operator.itemgetter(1), reverse=True)
+			tmp_list_k = []
+			tmp_list_v = []
 			if args.cutoff_number:
 			## Filtered output
-				tmp_list_k = []
-				tmp_list_v = []
 				if counter == 0:
 					output_txt.write("NOTE: this is not the complete output. In this output there will only be represented the plasmids with more than "+ args.cutoff_number + " coverage.\n\n")
 					counter=1					
-				print "something"
-				sorted_percCoverage_dic = sorted(Percentage_BasesCovered.items(), key=operator.itemgetter(1), reverse=True)
 				for k,v in sorted_percCoverage_dic:
 					if v >= float(args.cutoff_number):
 							tmp_list_k.append(k)
@@ -325,21 +331,28 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
 				for element in tmp_list_v:
 					output_txt.write(str(element) +"\t")
+				bar_plot(range(0, len(tmp_list_k)), tmp_list_v)
 				## MEAN ##
 				output_txt.write("\nMean mapping depth\t")
 				for element in tmp_list_k:
 					output_txt.write(str(Mean[element]) + "\t")
 
 				output_txt.write("\n")
-
+			#Standard output
 			else:
+				for k,v in sorted_percCoverage_dic:
+					tmp_list_k.append(k)
+					tmp_list_v.append(v)
 				## COVERAGE PERCENTAGE ##
-				output_txt.write(fn + "\t" + ("\t").join(Percentage_BasesCovered) + "\nCoverage Percentage\t")
-				for element in Percentage_BasesCovered:
-					output_txt.write(str(Percentage_BasesCovered[element]) +"\t")
+				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
+				for element in tmp_list_v:
+					output_txt.write(str(element) +"\t")
+				print range(0, len(tmp_list_k))
+				print tmp_list_v
+				bar_plot(range(0, len(tmp_list_k)), tmp_list_v)
 				## MEAN ##
 				output_txt.write("\nMean mapping depth\t")
-				for element in Percentage_BasesCovered:
+				for element in tmp_list_k:
 					output_txt.write(str(Mean[element]) + "\t")
 
 				output_txt.write("\n")
