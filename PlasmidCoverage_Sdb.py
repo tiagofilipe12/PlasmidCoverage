@@ -3,18 +3,13 @@
 ## Last update: 15/1/2017
 ## Author: T.F. Jesus
 
-#import sys
 import argparse
 import os
 import re
 import operator
-#import numpy as np
-#import prettytable
 #import matplotlib.pyplot as plt
 from subprocess import Popen, PIPE, call
-#from collections import defaultdict
 from Bio import SeqIO
-#from shutil import copyfile
 from time import time
 from datetime import datetime
 
@@ -43,14 +38,14 @@ def FolderExist(directory):
 def FastaDict(fasta_file):
 	if_handle=open(fasta_file,'r')
 	x = 0
-	sequence = ""
+	sequence = "" ## this reset has to pass within the loop
 	fasta_dic = {}
 	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/"]
 
 	for line in if_handle:
 		if len(line) > 0: 
 			line = line.splitlines()[0]  
-		if x >= 0 and line.startswith(">"):
+		if x == 0 and line.startswith(">"):
 			PlasmidName = line[1:]
 			for char in problematic_characters:
 					PlasmidName = PlasmidName.replace(char, '_')
@@ -58,6 +53,11 @@ def FastaDict(fasta_file):
 		elif x == 0 and not line.startswith(">"):
 			print "Is this a fasta file? " + fasta_file
 			raise SystemExit
+		elif x ==1 and line.startswith(">"):
+			sequence =""
+			PlasmidName = line[1:]
+			for char in problematic_characters:
+					PlasmidName = PlasmidName.replace(char, '_')
 		else:
 			print("Passing sequence itself...")
 			sequence += line
