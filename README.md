@@ -21,3 +21,5 @@ In both versions, .gb files are also supported. These files will be converted in
 
 **'-o'**,**'--output'**, dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. There is no need of file extension.')
 
+**'-c'**,**'--cutoff'**, dest='cutoff_number', help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0-1.')
+
