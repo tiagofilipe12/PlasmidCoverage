@@ -10,6 +10,7 @@ import operator
 import matplotlib
 matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
 import matplotlib.pyplot as plt
+from matplotlib.backends.backend_pdf import PdfPages
 from subprocess import Popen, PIPE, call
 from Bio import SeqIO
 from time import time
@@ -164,12 +165,15 @@ def DepthFileReader(depth_file, plasmid_length):
 		Mean[ref] = sum(depth_dic_coverage[ref].values())/len(depth_dic_coverage[ref])
 	return Percentage_BasesCovered, Mean 
 
-def bar_plot(X,Y):
-	fig = plt.figure()
+def bar_plot(X,Y,fn):
+#	with PdfPages(out_name +'.pdf') as pp: 
+	fig=plt.figure()
 	plt.bar(X,Y)
 	plt.tick_params(axis='x', which='both', bottom='off',top='off',labelbottom='off')
-	fig.savefig(args.output_name + ".pdf")
-
+	plt.title("plot of: " + fn)
+	return fig
+#	pdf.savefig(fig)
+#	plt.close()
 
 ############# PLASMIDS ##################
 def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
@@ -234,7 +238,7 @@ parser.add_argument('-t', '--threads', dest='threads', default="1", help="Specif
 parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
 parser.add_argument('-o','--output', dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. No need for file extension!')
 parser.add_argument('-c','--cutoff', dest='cutoff_number', help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0-1.')
-
+#parser.add_argument('-g', '--graphs', dest='graphical', help='This option enables the output of graphical visualization of the % coverage in each plasmid. This options is intended to provide the user a better criteria for defining the optimal cut-off value (-c option)')
 args = parser.parse_args()
 
 ## Lists and dictionaries
@@ -260,13 +264,12 @@ idx_file=CreateBowtieIdx(maindb)
 
 ### READS#########################
 output_txt = open(args.output_name +".txt", "w")
+list_fig = []
 counter=0 # counter used to control output file
 for dirname, dirnames, filenames in os.walk(args.read_dir):
 	print(dirnames)
 	for subdirname in dirnames:
-		#print(subdirname) If fastq files are not in subdirectories of main directory the script won't do anything... this must be handled
 		for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,subdirname)):
-			#print filenames2
 			for filename in filenames2:
 				if filename.find('fastq')!=-1:
 					fn = filename.split('.')[0]
@@ -287,7 +290,6 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 #					sam_parser = SamDictMultipleHits(sam_file)
 					regex_match=re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate',err)
 					alignment_rate=regex_match.group(0).split('%')[0]
-					print alignment_rate
 
 					if alignment_rate>0.00:
 						print "2) " + 'samtools faidx '+maindb_path
@@ -309,7 +311,6 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 						depth_file = sorted_bam_file+'_depth.txt'
 						print("Creating coverage Depth File: " + depth_file)
 						proc2=Popen('samtools depth '+sorted_bam_file + ' > '+ depth_file, stdout = PIPE, stderr = PIPE, shell=True)
-						print("done")
 						out2,err2 = proc2.communicate()
 		
 			## Compute descritptive statistics and prints to tabular txt file
@@ -331,7 +332,8 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
 				for element in tmp_list_v:
 					output_txt.write(str(element) +"\t")
-				bar_plot(range(0, len(tmp_list_k)), tmp_list_v)
+				var_fig=bar_plot(range(0, len(tmp_list_k)), tmp_list_v, fn)
+				list_fig.append(var_fig)
 				## MEAN ##
 				output_txt.write("\nMean mapping depth\t")
 				for element in tmp_list_k:
@@ -347,9 +349,8 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
 				for element in tmp_list_v:
 					output_txt.write(str(element) +"\t")
-				print range(0, len(tmp_list_k))
-				print tmp_list_v
-				bar_plot(range(0, len(tmp_list_k)), tmp_list_v)
+				var_fig=bar_plot(range(0, len(tmp_list_k)), tmp_list_v, fn)
+				list_fig.append(var_fig)
 				## MEAN ##
 				output_txt.write("\nMean mapping depth\t")
 				for element in tmp_list_k:
@@ -358,3 +359,9 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 				output_txt.write("\n")
 
 output_txt.close()
+
+### Graphical outputs ###
+pdf_pages = PdfPages(args.output_name+'.pdf')
+for figure in list_fig:
+	pdf_pages.savefig(figure)
+pdf_pages.close()
