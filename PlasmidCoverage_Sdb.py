@@ -7,10 +7,13 @@ import argparse
 import os
 import re
 import operator
-import matplotlib
-matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
-import matplotlib.pyplot as plt
-from matplotlib.backends.backend_pdf import PdfPages
+#import matplotlib
+#matplotlib.use('Agg') # Force matplotlib to not use any Xwindows backend.
+#import matplotlib.pyplot as plt
+#from matplotlib.backends.backend_pdf import PdfPages
+import plotly
+import plotly.plotly as py
+import plotly.graph_objs as go
 from subprocess import Popen, PIPE, call
 from Bio import SeqIO
 from time import time
@@ -165,15 +168,22 @@ def DepthFileReader(depth_file, plasmid_length):
 		Mean[ref] = sum(depth_dic_coverage[ref].values())/len(depth_dic_coverage[ref])
 	return Percentage_BasesCovered, Mean 
 
-def bar_plot(X,Y,fn):
-#	with PdfPages(out_name +'.pdf') as pp: 
-	fig=plt.figure()
-	plt.bar(X,Y)
-	plt.tick_params(axis='x', which='both', bottom='off',top='off',labelbottom='off')
-	plt.title("plot of: " + fn)
-	return fig
-#	pdf.savefig(fig)
-#	plt.close()
+#def bar_plot(X,Y,fn):
+#	fig=plt.figure()
+#	plt.bar(X,Y)
+#	plt.axhline()
+#	plt.tick_params(axis='x', which='both', bottom='off',top='off',labelbottom='off')
+#	plt.title("plot of: " + fn)
+#	return fig
+
+def bar_plot(trace_list): #, cutoff, number_plasmid):
+#	trace_line = go.Scatter(x=[range(0, number_plasmid)],y=[cutoff]*number_plasmid)
+#	trace_list.append(trace_line)
+	data = trace_list
+	layout = go.Layout(barmode='group')
+	fig = go.Figure(data=data, layout=layout)
+	plot_url = plotly.offline.plot(fig, filename='graph_new.html',auto_open=False)	
+	
 
 ############# PLASMIDS ##################
 def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
@@ -237,7 +247,7 @@ parser.add_argument('-r','--read', dest='read_dir', required=True, help='Provide
 parser.add_argument('-t', '--threads', dest='threads', default="1", help="Specify the number of threads to be used by bowtie2")
 parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
 parser.add_argument('-o','--output', dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. No need for file extension!')
-parser.add_argument('-c','--cutoff', dest='cutoff_number', help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0-1.')
+parser.add_argument('-c','--cutoff', dest='cutoff_number', default = 0.00, help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0-1.')
 #parser.add_argument('-g', '--graphs', dest='graphical', help='This option enables the output of graphical visualization of the % coverage in each plasmid. This options is intended to provide the user a better criteria for defining the optimal cut-off value (-c option)')
 args = parser.parse_args()
 
@@ -259,12 +269,12 @@ maindb_path = os.path.join(args.plasmid_dir + "fasta/" + maindb)
 deltemp(os.path.join(args.plasmid_dir + "fasta/"))
 
 ##Create Bowtie Idx files for plasmid references
-
 idx_file=CreateBowtieIdx(maindb)
 
 ### READS#########################
 output_txt = open(args.output_name +".txt", "w")
-list_fig = []
+#list_fig = []
+trace_list = []
 counter=0 # counter used to control output file
 for dirname, dirnames, filenames in os.walk(args.read_dir):
 	print(dirnames)
@@ -322,7 +332,7 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 			if args.cutoff_number:
 			## Filtered output
 				if counter == 0:
-					output_txt.write("NOTE: this is not the complete output. In this output there will only be represented the plasmids with more than "+ args.cutoff_number + " coverage.\n\n")
+					output_txt.write("NOTE: outputed results for plasmids with more than "+ str(args.cutoff_number) + " coverage.\n\n")
 					counter=1					
 				for k,v in sorted_percCoverage_dic:
 					if v >= float(args.cutoff_number):
@@ -332,8 +342,11 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
 				for element in tmp_list_v:
 					output_txt.write(str(element) +"\t")
-				var_fig=bar_plot(range(0, len(tmp_list_k)), tmp_list_v, fn)
-				list_fig.append(var_fig)
+#				var_fig=bar_plot(range(0, len(tmp_list_k)), tmp_list_v, fn)
+#				list_fig.append(var_fig)
+## plotly ##
+				trace = go.Bar(x=tmp_list_k, y=tmp_list_v, name=fn)
+				trace_list.append(trace)
 				## MEAN ##
 				output_txt.write("\nMean mapping depth\t")
 				for element in tmp_list_k:
@@ -349,10 +362,14 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
 				for element in tmp_list_v:
 					output_txt.write(str(element) +"\t")
-				var_fig=bar_plot(range(0, len(tmp_list_k)), tmp_list_v, fn)
-				list_fig.append(var_fig)
+#				var_fig=bar_plot(range(0, len(tmp_list_k)), tmp_list_v, fn)
+#				list_fig.append(var_fig)
+## plotly ##
+				trace = go.Bar(x=tmp_list_k, y=tmp_list_v, name=fn)
+				trace_list.append(trace)
 				## MEAN ##
 				output_txt.write("\nMean mapping depth\t")
+
 				for element in tmp_list_k:
 					output_txt.write(str(Mean[element]) + "\t")
 
@@ -361,7 +378,12 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 output_txt.close()
 
 ### Graphical outputs ###
-pdf_pages = PdfPages(args.output_name+'.pdf')
-for figure in list_fig:
-	pdf_pages.savefig(figure)
-pdf_pages.close()
+
+#pdf_pages = PdfPages(args.output_name+'.pdf')
+#for figure in list_fig:
+#	pdf_pages.savefig(figure)
+#pdf_pages.close()
+
+##Plotly##
+
+bar_plot(trace_list)#, args.cutoff_number, len(tmp_list_k)) #instead of tmp_list_k it should be some kind of shorter tag
