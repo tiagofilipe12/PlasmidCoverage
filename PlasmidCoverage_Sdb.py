@@ -15,6 +15,7 @@ from subprocess import Popen, PIPE, call
 from Bio import SeqIO
 from time import time
 from datetime import datetime
+from shutil import copyfile
 
 
 #TODO: 
@@ -38,10 +39,9 @@ def FolderExist(directory):
 	else:
 		print os.path.join(directory) + " exists!"	
 
-def FastaDict(fasta_file):
+def fastadict(fasta_file):
 	if_handle=open(fasta_file,'r')
 	x = 0
-	sequence = "" ## this reset has to pass within the loop
 	fasta_dic = {}
 	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/"]
 
@@ -49,6 +49,7 @@ def FastaDict(fasta_file):
 		if len(line) > 0: 
 			line = line.splitlines()[0]  
 		if x == 0 and line.startswith(">"):
+			sequence =""
 			PlasmidName = line[1:]
 			for char in problematic_characters:
 					PlasmidName = PlasmidName.replace(char, '_')
@@ -56,20 +57,23 @@ def FastaDict(fasta_file):
 		elif x == 0 and not line.startswith(">"):
 			print "Is this a fasta file? " + fasta_file
 			raise SystemExit
-		elif x ==1 and line.startswith(">"):
+		elif x >=1 and line.startswith(">"):
 			sequence =""
 			PlasmidName = line[1:]
 			for char in problematic_characters:
 					PlasmidName = PlasmidName.replace(char, '_')
+			x+=1
 		else:
-			print("Passing sequence itself...")
+			print("Parsing sequence #: " + str(x))
 			sequence += line
 			fasta_dic[PlasmidName] = sequence
 	if_handle.close()
 	return fasta_dic
 
 def SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path):
-	fasta_dic = FastaDict(fasta_file)
+	fasta_dic = fastadict(fasta_file)
+	print len(fasta_dic.keys())
+	print len(fasta_dic.values())
 	out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
 	for key in fasta_dic:
 		plasmid_length[key]=len(fasta_dic[key])
@@ -112,12 +116,11 @@ def CreateBowtieIdx(filename):
 	return idx_file
 
 def FastaConcatenation(dblist):
-	output_filename = args.output_name + ".fasta"
-	dirname = os.path.join(args.plasmid_dir, "fasta", "")
-	print(dirname)
-	if os.path.isfile(dirname + output_filename):
-		print args.output_name + ".fasta already exists. Overriding file..."
+	print(dblist)
 	main_filename = args.output_name + ".fasta"
+	dirname = os.path.join(args.plasmid_dir, "fasta", "")
+	if os.path.isfile(dirname + main_filename):
+		print args.output_name + ".fasta already exists. Overriding file..."	
 	print "Saving to: " + main_filename
 	concat=Popen("cat " + ' '.join(dblist) + "> " + dirname + main_filename, stdout = PIPE, stderr = PIPE, shell=True)
 	stdout,stderr= concat.communicate()
@@ -166,7 +169,7 @@ def DepthFileReader(depth_file, plasmid_length):
 	return Percentage_BasesCovered, Mean 
 
 def bar_plot(trace_list, cutoff, number_plasmid):
-	trace_line = go.Scatter(x=number_plasmid,y=[cutoff]*len(number_plasmid), mode = 'lines', name='cut-off', marker=dict(color= 'rgb(255, 0, 0)'))
+	trace_line = go.Scatter(x=number_plasmid, y=[cutoff]*len(number_plasmid), mode = 'lines', name='cut-off', marker=dict(color= 'rgb(255, 0, 0)')) 
 	trace_list.append(trace_line)
 	data = trace_list
 	layout = go.Layout(barmode='group', yaxis= dict(title='Percentage of plasmid length covered'))#, shapes=[{'type':'line', 'x0' = 0,  'y0'= cutoff, 'x1': len(number_plasmid), 'y1': cutoff,},],)
@@ -183,7 +186,7 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 		dirnames[:] = [d for d in dirnames if d not in ["bowtie2idx", "fasta"]]
 		for filename in filenames:
 			#if it is a genebank file
-			if '.gb' in filename:
+			if filename.endswith('.gb'):
 				pct+=1
 				print "Plasmid (.gb) file found: "+ filename
 				print "#:"+str(pct)
@@ -201,24 +204,25 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 					fasta_path = os.path.join(dirname,'fasta',os.path.splitext(filename)[0])+'.fasta'
 					plasmid_length=SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path)
 					fasta_file = fasta_path + ".temp"
+					dblist.append(fasta_file)
 			elif any (x in filename for x in [".fas",".fasta",".fna",".fsa", ".fa"]):
 				#if it is a fasta file extension
 				FolderExist(os.path.join(dirname + "fasta"))	
 				pct+=1
 				print "Plasmid file (.fasta) found: "+ filename
 				print "#:"+str(pct)
-				fasta_file = os.path.join(dirname,os.path.splitext(filename)[0])+'.fasta'
+				fasta_file = os.path.join(dirname,os.path.splitext(filename)[0]) + os.path.splitext(filename)[1]
+				print fasta_file 
 				fasta_path = os.path.join(dirname,'fasta/',os.path.splitext(filename)[0])+'.fasta'
 				print "Fasta Found! No conversion needed (.fasta)"
+				#copyfile(fasta_file, fasta_path)
 					# if there was a previous .gb->.fasta conversion
 				plasmid_length=SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path)
 				fasta_file = os.path.join(fasta_path + ".temp")
+				dblist.append(fasta_file)
 			else:
-				print "File extension not recognized! Are you sure this is a fasta or gb file? Extensions autorized are .gb, .fas, .fasta, .fna, .fsa or .fa"
+				print "File extension " +os.path.splitext(filename)[1]+ " not recognized! Are you sure this is a fasta or gb file? Extensions autorized are .gb, .fas, .fasta, .fna, .fsa or .fa"
 				
-			dblist.append(fasta_file)
-
-
 	print "========================================================================="
 	print 
 
@@ -253,6 +257,7 @@ def mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path):
 		proc2=Popen('samtools depth '+sorted_bam_file + ' > '+ depth_file, stdout = PIPE, stderr = PIPE, shell=True)
 		out2,err2 = proc2.communicate()
 		return depth_file
+
 
 ## Argparser arguments
 
@@ -355,5 +360,5 @@ output_txt.close()
 ### Graphical outputs ###
 
 ##Plotly##
-
-bar_plot(trace_list, float(args.cutoff_number), master_keys) #instead of tmp_list_k it should be some kind of shorter tag
+number_plasmid = [master_keys[0],master_keys[-1]]
+bar_plot(trace_list, float(args.cutoff_number), number_plasmid)
