@@ -169,7 +169,7 @@ def bar_plot(trace_list, cutoff, number_plasmid):
 	trace_line = go.Scatter(x=number_plasmid,y=[cutoff]*len(number_plasmid), mode = 'lines', name='cut-off', marker=dict(color= 'rgb(255, 0, 0)'))
 	trace_list.append(trace_line)
 	data = trace_list
-	layout = go.Layout(barmode='group')
+	layout = go.Layout(barmode='group', yaxis= dict(title='Percentage of plasmid length covered'))#, shapes=[{'type':'line', 'x0' = 0,  'y0'= cutoff, 'x1': len(number_plasmid), 'y1': cutoff,},],)
 	fig = go.Figure(data=data, layout=layout)
 	plot_url = plotly.offline.plot(fig, filename='graph_new.html',auto_open=False)	
 	
@@ -228,6 +228,32 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 	main_db = FastaConcatenation(dblist) 
 	return main_db
 
+def mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path):
+	btc ='bowtie2 -x '+idx_file+' -U '+reads_file+' -p ' +threads+ ' -k '+ max_k + ' -5 15 -S '+ sam_file
+	print "1) " + btc
+	proc1=Popen(btc, stdout = PIPE, stderr = PIPE, shell=True)
+	out,err= proc1.communicate()
+	print err
+	regex_match=re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate',err)
+	alignment_rate=regex_match.group(0).split('%')[0]
+	if alignment_rate>0.00:
+		print "2) " + 'samtools faidx '+maindb_path
+		call('samtools faidx '+maindb_path, shell=True)
+		bam_file = sam_file[:-3]+'bam'
+		print("3) " + 'samtools view -b -S -t '+maindb_path+'.fai'+' -@ ' +threads+' -o '+bam_file+' '+sam_file)
+		call('samtools view -b -S -t '+maindb_path+'.fai' +' -@ ' +threads+' -o '+bam_file+' '+sam_file, shell=True)
+		sorted_bam_file = bam_file[:-3]+'sorted.bam'
+		print("4) "+ 'samtools sort'+ ' -@ ' +threads+' -o '+sorted_bam_file+ ' ' + bam_file)
+		call('samtools sort'+ ' -@ ' +threads+' -o '+sorted_bam_file+ ' ' + bam_file, shell=True)
+		print("5)" + 'samtools index '+sorted_bam_file)
+		call('samtools index '+sorted_bam_file, shell=True)
+		print("6) " + 'samtools depth '+sorted_bam_file)
+		depth_file = sorted_bam_file+'_depth.txt'
+		print("Creating coverage Depth File: " + depth_file)
+		proc2=Popen('samtools depth '+sorted_bam_file + ' > '+ depth_file, stdout = PIPE, stderr = PIPE, shell=True)
+		out2,err2 = proc2.communicate()
+		return depth_file
+
 ## Argparser arguments
 
 parser = argparse.ArgumentParser(description="Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir")
@@ -280,36 +306,10 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 					print "Mapping "+ filename+" vs "+ maindb_path
 					sam_file= dirname2+'/'+args.output_name+'_'+subdirname+'.sam'
 					reads_file=os.path.join(dirname2,filename)
-					btc ='bowtie2 -x '+idx_file+' -U '+reads_file+' -p ' +args.threads+ ' -k '+ alignmaxnumber(args.max_align,dblist) + ' -5 15 -S '+ sam_file
-					print "1) " + btc
-					proc1=Popen(btc, stdout = PIPE, stderr = PIPE, shell=True)
-					out,err= proc1.communicate()
-					print err
-#					sam_parser = SamDictMultipleHits(sam_file)
-					regex_match=re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate',err)
-					alignment_rate=regex_match.group(0).split('%')[0]
-
-					if alignment_rate>0.00:
-						print "2) " + 'samtools faidx '+maindb_path
-						call('samtools faidx '+maindb_path, shell=True)
-
-						bam_file = sam_file[:-3]+'bam'
-						print("3) " + 'samtools view -b -S -t '+maindb_path+'.fai'+' -@ ' +args.threads+' -o '+bam_file+' '+sam_file)
-						call('samtools view -b -S -t '+maindb_path+'.fai' +' -@ ' +args.threads+' -o '+bam_file+' '+sam_file, shell=True)
-#						SamDictMultipleHits(sam_file)
-
-						sorted_bam_file = bam_file[:-3]+'sorted.bam'
-						print("4) "+ 'samtools sort'+ ' -@ ' +args.threads+' -o '+sorted_bam_file+ ' ' + bam_file)
-						call('samtools sort'+ ' -@ ' +args.threads+' -o '+sorted_bam_file+ ' ' + bam_file, shell=True)
-
-						print("5)" + 'samtools index '+sorted_bam_file)
-						call('samtools index '+sorted_bam_file, shell=True)
-
-						print("6) " + 'samtools depth '+sorted_bam_file)
-						depth_file = sorted_bam_file+'_depth.txt'
-						print("Creating coverage Depth File: " + depth_file)
-						proc2=Popen('samtools depth '+sorted_bam_file + ' > '+ depth_file, stdout = PIPE, stderr = PIPE, shell=True)
-						out2,err2 = proc2.communicate()
+					threads = args.threads
+					max_k=alignmaxnumber(args.max_align,dblist)
+					depth_file=mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path)
+					
 		
 			## Compute descritptive statistics and prints to tabular txt file
 			
