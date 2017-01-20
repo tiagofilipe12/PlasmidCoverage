@@ -50,6 +50,7 @@ def fastadict(fasta_file):
 			line = line.splitlines()[0]  
 		if x == 0 and line.startswith(">"):
 			sequence =""
+			sequence_list =[]
 			PlasmidName = line[1:]
 			for char in problematic_characters:
 					PlasmidName = PlasmidName.replace(char, '_')
@@ -58,6 +59,8 @@ def fastadict(fasta_file):
 			print "Is this a fasta file? " + fasta_file
 			raise SystemExit
 		elif x >=1 and line.startswith(">"):
+			fasta_dic[PlasmidName] = sequence_list	#appends last sequence to be parsed before new structure for sequence
+			sequence_list =[]
 			sequence =""
 			PlasmidName = line[1:]
 			for char in problematic_characters:
@@ -65,8 +68,8 @@ def fastadict(fasta_file):
 			x+=1
 		else:
 			print("Parsing sequence #: " + str(x))
-			sequence += line
-			fasta_dic[PlasmidName] = sequence
+			sequence_list.append(line)
+	fasta_dic[PlasmidName] = sequence_list	#appends last sequence on the fasta
 	if_handle.close()
 	return fasta_dic
 
@@ -77,7 +80,7 @@ def SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path):
 	out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
 	for key in fasta_dic:
 		plasmid_length[key]=len(fasta_dic[key])
-		out_handle.write('>' + key + '\n' + fasta_dic[key] + '\n')
+		out_handle.write('>' + key + '\n' + ''.join(fasta_dic[key]) + '\n')
 	out_handle.close()
 	return plasmid_length 
 
