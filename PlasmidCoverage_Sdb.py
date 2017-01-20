@@ -67,7 +67,6 @@ def fastadict(fasta_file):
 					PlasmidName = PlasmidName.replace(char, '_')
 			x+=1
 		else:
-			print("Parsing sequence #: " + str(x))
 			sequence_list.append(line)
 	fasta_dic[PlasmidName] = sequence_list	#appends last sequence on the fasta
 	if_handle.close()
@@ -224,7 +223,6 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 				print "Plasmid file (.fasta) found: "+ filename
 				print "#:"+str(pct)
 				fasta_file = os.path.join(dirname,os.path.splitext(filename)[0]) + os.path.splitext(filename)[1]
-				print fasta_file 
 				fasta_path = os.path.join(dirname,'fasta/',os.path.splitext(filename)[0])+'.fasta'
 				print "Fasta Found! No conversion needed (.fasta)"
 				#copyfile(fasta_file, fasta_path)
