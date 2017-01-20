@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-## Last update: 15/1/2017
+## Last update: 20/1/2017
 ## Author: T.F. Jesus
 ## This version runs with bowtie2 build 2.2.9, with multithreading for bowtie2-build
 
