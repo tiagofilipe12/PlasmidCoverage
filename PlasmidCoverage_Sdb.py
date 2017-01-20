@@ -79,7 +79,7 @@ def SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path):
 	print len(fasta_dic.values())
 	out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
 	for key in fasta_dic:
-		plasmid_length[key]=len(fasta_dic[key])
+		plasmid_length[key]=sum(len(s) for s in fasta_dic[key])
 		out_handle.write('>' + key + '\n' + ''.join(fasta_dic[key]) + '\n')
 	out_handle.close()
 	return plasmid_length 
@@ -101,10 +101,12 @@ def ExtractFastaPlasmids(gbkfile,fastafile,plasmid_length):
 	out_handle.close()	
 	plasmid_length[plasmid_name]=len(str(gbkdata.seq))
 	print plasmid_length.values(), " values each gb file"
-	return plasmid_length
 	print(" Wrote fasta file: "+ fastafile)
+	return plasmid_length
+	
 
 def CreateBowtieIdx(filename):
+	check =""
 	dirname = args.plasmid_dir
 	if not os.path.exists(os.path.join(dirname + "bowtie2idx")):		
 		os.makedirs(os.path.join(dirname + "bowtie2idx"))
@@ -112,10 +114,17 @@ def CreateBowtieIdx(filename):
 		pass	
 	idx_file=os.path.join(dirname,'bowtie2idx',os.path.splitext(filename)[0])+'.idx'
 	fasta_file = os.path.join(dirname,'fasta',os.path.splitext(filename)[0])+'.fasta'
-	if not(os.path.exists(idx_file)):
+	list_idxfiles = [idx_file + ".1.bt2", idx_file + ".2.bt2", idx_file + ".3.bt2", idx_file + ".4.bt2", idx_file + ".rev.2.bt2", idx_file + ".rev.1.bt2"]
+	for idx in list_idxfiles:
+		if not os.path.isfile(idx): 
+			check = "yes"
+	if "yes" in check:
 		print("Creating " + idx_file)
-		#Create bowtie index 			
+			#Create bowtie index 			
 		call('bowtie2-build -q '+ fasta_file +' --threads ' +args.threads+ ' ' +idx_file, shell=True)		#convert to popen
+	else:
+		print idx_file + " already exists!"
+
 	return idx_file
 
 def FastaConcatenation(dblist):
@@ -329,10 +338,9 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 			list_all_v = []
 			if 0.00<=float(args.cutoff_number)<=1.00: 
 			## Filtered output
-				print "cutoff"
 				if counter == 0:
 					output_txt.write("NOTE: outputed results for plasmids with more than "+ args.cutoff_number + " coverage.\n\n")
-					counter=1					
+					counter=1
 				for k,v in sorted_percCoverage_dic:
 					if v >= float(args.cutoff_number):
 						tmp_list_k.append(k)
@@ -345,7 +353,6 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
 				for element in tmp_list_v:
 					output_txt.write(str(element) +"\t")
-## plotly ##
 				trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
 				trace_list.append(trace)
 				## MEAN ##
@@ -362,6 +369,4 @@ output_txt.close()
 
 ### Graphical outputs ###
 
-##Plotly##
-number_plasmid = [master_keys[0],master_keys[-1]]
-bar_plot(trace_list, float(args.cutoff_number), number_plasmid)
+bar_plot(trace_list, float(args.cutoff_number), master_keys)
