@@ -49,7 +49,6 @@ def fastadict(fasta_file):
 		if len(line) > 0: 
 			line = line.splitlines()[0]  
 		if x == 0 and line.startswith(">"):
-			sequence =""
 			sequence_list =[]
 			PlasmidName = line[1:]
 			for char in problematic_characters:
@@ -61,7 +60,6 @@ def fastadict(fasta_file):
 		elif x >=1 and line.startswith(">"):
 			fasta_dic[PlasmidName] = sequence_list	#appends last sequence to be parsed before new structure for sequence
 			sequence_list =[]
-			sequence =""
 			PlasmidName = line[1:]
 			for char in problematic_characters:
 					PlasmidName = PlasmidName.replace(char, '_')
@@ -335,7 +333,6 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 			list_all_k = []
 			list_all_v = []
 			if 0.00<=float(args.cutoff_number)<=1.00: 
-			## Filtered output
 				if counter == 0:
 					output_txt.write("NOTE: outputed results for plasmids with more than "+ args.cutoff_number + " coverage.\n\n")
 					counter=1
@@ -359,7 +356,6 @@ for dirname, dirnames, filenames in os.walk(args.read_dir):
 					output_txt.write(str(Mean[element]) + "\t")
 
 				output_txt.write("\n")
-			#Standard output
 			else:
 				print "cutoff value out of bounds. cutoff value must be between 0 and 1 since it is a probability"
 
