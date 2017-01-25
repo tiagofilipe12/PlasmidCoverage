@@ -268,99 +268,102 @@ def mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path):
 
 
 ## Argparser arguments
+def main():
+	parser = argparse.ArgumentParser(description="Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir")
+	parser.add_argument('-p','--plasmid', dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas')
+	parser.add_argument('-r','--read', dest='read_dir', required=True, help='Provide the path to the directory containing reads fastas')
+	parser.add_argument('-t', '--threads', dest='threads', default="1", help="Specify the number of threads to be used by bowtie2")
+	parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
+	parser.add_argument('-o','--output', dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. No need for file extension!')
+	parser.add_argument('-c','--cutoff', dest='cutoff_number', default = "0.00", help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0.00-1.00')
+	#parser.add_argument('-g', '--graphs', dest='graphical', help='This option enables the output of graphical visualization of the % coverage in each plasmid. This options is intended to provide the user a better criteria for defining the optimal cut-off value (-c option)')
+	args = parser.parse_args()
 
-parser = argparse.ArgumentParser(description="Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir")
-parser.add_argument('-p','--plasmid', dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas')
-parser.add_argument('-r','--read', dest='read_dir', required=True, help='Provide the path to the directory containing reads fastas')
-parser.add_argument('-t', '--threads', dest='threads', default="1", help="Specify the number of threads to be used by bowtie2")
-parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
-parser.add_argument('-o','--output', dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. No need for file extension!')
-parser.add_argument('-c','--cutoff', dest='cutoff_number', default = "0.00", help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0.00-1.00')
-#parser.add_argument('-g', '--graphs', dest='graphical', help='This option enables the output of graphical visualization of the % coverage in each plasmid. This options is intended to provide the user a better criteria for defining the optimal cut-off value (-c option)')
-args = parser.parse_args()
+	## Lists and dictionaries
 
-## Lists and dictionaries
-
-plasmid_length={}
-strain_list=[]
-pidx2name={}
-dblist=[]
-sam_dict={}
+	plasmid_length={}
+	strain_list=[]
+	pidx2name={}
+	dblist=[]
+	sam_dict={}
 
 
-## Process plasmids references into a single fasta
+	## Process plasmids references into a single fasta
 
-maindb = PlasmidProcessing(dblist,args.plasmid_dir,plasmid_length)
-maindb_path = os.path.join(args.plasmid_dir + "fasta/" + maindb)
+	maindb = PlasmidProcessing(dblist,args.plasmid_dir,plasmid_length)
+	maindb_path = os.path.join(args.plasmid_dir + "fasta/" + maindb)
 
-## Deletes temporary fastas created during PlasmidProcessing function
-deltemp(os.path.join(args.plasmid_dir + "fasta/"))
+	## Deletes temporary fastas created during PlasmidProcessing function
+	deltemp(os.path.join(args.plasmid_dir + "fasta/"))
 
-##Create Bowtie Idx files for plasmid references
-idx_file=CreateBowtieIdx(maindb)
+	##Create Bowtie Idx files for plasmid references
+	idx_file=CreateBowtieIdx(maindb)
 
-### READS#########################
-output_txt = open(args.output_name +".txt", "w")
-master_keys = []
-trace_list = []
-counter=0 # counter used to control output file
-for dirname, dirnames, filenames in os.walk(args.read_dir):
-	for subdirname in dirnames:
-		for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,subdirname)):
-			for filename in filenames2:
-				if filename.find('fastq')!=-1:
-					fn = filename.split('.')[0]
-					strain_list.append(fn)
-					print 
-					print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
-					print
-					print "Filename :"+ filename
-					print datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
-					print "Mapping "+ filename+" vs "+ maindb_path
-					sam_file= dirname2+'/'+args.output_name+'_'+subdirname+'.sam'
-					reads_file=os.path.join(dirname2,filename)
-					threads = args.threads
-					max_k=alignmaxnumber(args.max_align,dblist)
-					depth_file=mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path)
+	### READS#########################
+	output_txt = open(args.output_name +".txt", "w")
+	master_keys = []
+	trace_list = []
+	counter=0 # counter used to control output file
+	for dirname, dirnames, filenames in os.walk(args.read_dir):
+		for subdirname in dirnames:
+			for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,subdirname)):
+				for filename in filenames2:
+					if filename.find('fastq')!=-1:
+						fn = filename.split('.')[0]
+						strain_list.append(fn)
+						print 
+						print "+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++"
+						print
+						print "Filename :"+ filename
+						print datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
+						print "Mapping "+ filename+" vs "+ maindb_path
+						sam_file= dirname2+'/'+args.output_name+'_'+subdirname+'.sam'
+						reads_file=os.path.join(dirname2,filename)
+						threads = args.threads
+						max_k=alignmaxnumber(args.max_align,dblist)
+						depth_file=mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path)
 					
 		
-			## Compute descritptive statistics and prints to tabular txt file
+				## Compute descritptive statistics and prints to tabular txt file
 			
-			Percentage_BasesCovered, Mean = DepthFileReader(depth_file, plasmid_length)
-			sorted_percCoverage_dic = sorted(Percentage_BasesCovered.items(), key=operator.itemgetter(1), reverse=True)
-			tmp_list_k = []
-			tmp_list_v = []
-			list_all_k = []
-			list_all_v = []
-			if 0.00<=float(args.cutoff_number)<=1.00: 
-				if counter == 0:
-					output_txt.write("NOTE: outputed results for plasmids with more than "+ args.cutoff_number + " coverage.\n\n")
-					counter=1
-				for k,v in sorted_percCoverage_dic:
-					if v >= float(args.cutoff_number):
-						tmp_list_k.append(k)
-						tmp_list_v.append(v)
-					if k not in master_keys:
-						master_keys.append(k)
-					list_all_v.append(v)
-					list_all_k.append(k)
-				## COVERAGE PERCENTAGE ##
-				output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
-				for element in tmp_list_v:
-					output_txt.write(str(element) +"\t")
-				trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
-				trace_list.append(trace)
-				## MEAN ##
-				output_txt.write("\nMean mapping depth\t")
-				for element in tmp_list_k:
-					output_txt.write(str(Mean[element]) + "\t")
+				Percentage_BasesCovered, Mean = DepthFileReader(depth_file, plasmid_length)
+				sorted_percCoverage_dic = sorted(Percentage_BasesCovered.items(), key=operator.itemgetter(1), reverse=True)
+				tmp_list_k = []
+				tmp_list_v = []
+				list_all_k = []
+				list_all_v = []
+				if 0.00<=float(args.cutoff_number)<=1.00: 
+					if counter == 0:
+						output_txt.write("NOTE: outputed results for plasmids with more than "+ args.cutoff_number + " coverage.\n\n")
+						counter=1
+					for k,v in sorted_percCoverage_dic:
+						if v >= float(args.cutoff_number):
+							tmp_list_k.append(k)
+							tmp_list_v.append(v)
+						if k not in master_keys:
+							master_keys.append(k)
+						list_all_v.append(v)
+						list_all_k.append(k)
+					## COVERAGE PERCENTAGE ##
+					output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
+					for element in tmp_list_v:
+						output_txt.write(str(element) +"\t")
+					trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
+					trace_list.append(trace)
+					## MEAN ##
+					output_txt.write("\nMean mapping depth\t")
+					for element in tmp_list_k:
+						output_txt.write(str(Mean[element]) + "\t")
 
-				output_txt.write("\n")
-			else:
-				print "cutoff value out of bounds. cutoff value must be between 0 and 1 since it is a probability"
+					output_txt.write("\n")
+				else:
+					print "cutoff value out of bounds. cutoff value must be between 0 and 1 since it is a probability"
 
-output_txt.close()
+	output_txt.close()
 
-### Graphical outputs ###
+	### Graphical outputs ###
 
-bar_plot(trace_list, float(args.cutoff_number), master_keys)
+	bar_plot(trace_list, float(args.cutoff_number), master_keys)
+
+if __name__ == "__main__":
+	main()
