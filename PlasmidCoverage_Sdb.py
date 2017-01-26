@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-## Last update: 20/1/2017
+## Last update: 26/1/2017
 ## Author: T.F. Jesus
 ## This version runs with bowtie2 build 2.2.9, with multithreading for bowtie2-build
 
@@ -43,7 +43,7 @@ def fastadict(fasta_file):
 	if_handle=open(fasta_file,'r')
 	x = 0
 	fasta_dic = {}
-	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/"]
+	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/","[","]",":","{","}"]
 
 	for line in if_handle:
 		if len(line) > 0: 
@@ -84,7 +84,7 @@ def SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path):
 def ExtractFastaPlasmids(gbkfile,fastafile,plasmid_length):
 	if_handle=open(gbkfile,'r')
 	gbkdata=SeqIO.read(if_handle, "genbank")
-	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/"]
+	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/","[","]",":","{","}"]
 	plasmid_name=gbkdata.description[:-1]
 	for char in problematic_characters:
 		plasmid_name=plasmid_name.replace(char, '_')
