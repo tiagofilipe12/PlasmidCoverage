@@ -102,9 +102,8 @@ def ExtractFastaPlasmids(gbkfile,fastafile,plasmid_length):
 	return plasmid_length
 	
 
-def CreateBowtieIdx(filename):
+def CreateBowtieIdx(filename, dirname, threads):
 	check =""
-	dirname = args.plasmid_dir
 	if not os.path.exists(os.path.join(dirname + "bowtie2idx")):		
 		os.makedirs(os.path.join(dirname + "bowtie2idx"))
 	else:
@@ -118,18 +117,18 @@ def CreateBowtieIdx(filename):
 	if "yes" in check:
 		print("Creating " + idx_file)
 			#Create bowtie index 			
-		call('bowtie2-build -q '+ fasta_file +' --threads ' +args.threads+ ' ' +idx_file, shell=True)		#convert to popen
+		call('bowtie2-build -q '+ fasta_file +' --threads ' +threads+ ' ' +idx_file, shell=True)		#convert to popen
 	else:
 		print idx_file + " already exists!"
 
 	return idx_file
 
-def FastaConcatenation(dblist):
+def FastaConcatenation(dblist, output_name, plasmid_dir):
 	print(dblist)
-	main_filename = args.output_name + ".fasta"
-	dirname = os.path.join(args.plasmid_dir, "fasta", "")
+	main_filename = output_name + ".fasta"
+	dirname = os.path.join(plasmid_dir, "fasta", "")
 	if os.path.isfile(dirname + main_filename):
-		print args.output_name + ".fasta already exists. Overriding file..."	
+		print output_name + ".fasta already exists. Overriding file..."	
 	print "Saving to: " + main_filename
 	concat=Popen("cat " + ' '.join(dblist) + "> " + dirname + main_filename, stdout = PIPE, stderr = PIPE, shell=True)
 	stdout,stderr= concat.communicate()
@@ -177,17 +176,16 @@ def DepthFileReader(depth_file, plasmid_length):
 		Mean[ref] = sum(depth_dic_coverage[ref].values())/len(depth_dic_coverage[ref])
 	return Percentage_BasesCovered, Mean 
 
-def bar_plot(trace_list, cutoff, number_plasmid):
+def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
 	trace_line = go.Scatter(x=number_plasmid, y=[cutoff]*len(number_plasmid), mode = 'lines', name='cut-off', marker=dict(color= 'rgb(255, 0, 0)')) 
 	trace_list.append(trace_line)
-	data = trace_list
-	layout = go.Layout(barmode='group', yaxis= dict(title='Percentage of plasmid length covered'))#, shapes=[{'type':'line', 'x0' = 0,  'y0'= cutoff, 'x1': len(number_plasmid), 'y1': cutoff,},],)
-	fig = go.Figure(data=data, layout=layout)
-	plot_url = plotly.offline.plot(fig, filename='graph_new.html',auto_open=False)	
-	
+	# 2 bars and 1 line plot
+	layout = go.Layout(barmode='group', yaxis= dict(title='Percentage of plasmid length covered'))
+	fig = go.Figure(data=trace_list, layout=layout)
+	plot_url = plotly.offline.plot(fig, filename= plasmid_db_out + '.html',auto_open=False)	
 
 ############# PLASMIDS ##################
-def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
+def PlasmidProcessing(dblist, plasmids_path ,plasmid_length, output_name):
 	print "========================================================================="
 	print "Processing Plasmids in "+ plasmids_path
 	pct=0;
@@ -226,7 +224,7 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 				#copyfile(fasta_file, fasta_path)
 					# if there was a previous .gb->.fasta conversion
 				plasmid_length=SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path)
-				fasta_file = os.path.join(fasta_path + ".temp")
+				fasta_file = fasta_path + ".temp"
 				dblist.append(fasta_file)
 			else:
 				print "File extension " +os.path.splitext(filename)[1]+ " not recognized! Are you sure this is a fasta or gb file? Extensions autorized are .gb, .fas, .fasta, .fna, .fsa or .fa"
@@ -237,7 +235,7 @@ def PlasmidProcessing(dblist,plasmids_path,plasmid_length):
 ## CONCATENATES ALL PLASMID FASTA INTO A SINGLE DB ######################################
 ## This avoids the mapping of reads to a "worst matching" plasmid########################
 ## Instead reads will now be matched against the best scoring plasmid in the entire db###
-	main_db = FastaConcatenation(dblist) 
+	main_db = FastaConcatenation(dblist, output_name, plasmids_path) 
 	return main_db
 
 def mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path):
@@ -266,8 +264,6 @@ def mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path):
 		out2,err2 = proc2.communicate()
 		return depth_file
 
-
-## Argparser arguments
 def main():
 	parser = argparse.ArgumentParser(description="Outputs a coverage percentage for each Plasmid gbk in PlasmidDir using the reads presented in the directory structure in ReadsDir")
 	parser.add_argument('-p','--plasmid', dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas')
@@ -276,7 +272,6 @@ def main():
 	parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
 	parser.add_argument('-o','--output', dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. No need for file extension!')
 	parser.add_argument('-c','--cutoff', dest='cutoff_number', default = "0.00", help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0.00-1.00')
-	#parser.add_argument('-g', '--graphs', dest='graphical', help='This option enables the output of graphical visualization of the % coverage in each plasmid. This options is intended to provide the user a better criteria for defining the optimal cut-off value (-c option)')
 	args = parser.parse_args()
 
 	## Lists and dictionaries
@@ -287,17 +282,16 @@ def main():
 	dblist=[]
 	sam_dict={}
 
-
 	## Process plasmids references into a single fasta
 
-	maindb = PlasmidProcessing(dblist,args.plasmid_dir,plasmid_length)
+	maindb = PlasmidProcessing(dblist, args.plasmid_dir , plasmid_length, args.output_name)
 	maindb_path = os.path.join(args.plasmid_dir + "fasta/" + maindb)
 
 	## Deletes temporary fastas created during PlasmidProcessing function
 	deltemp(os.path.join(args.plasmid_dir + "fasta/"))
 
 	##Create Bowtie Idx files for plasmid references
-	idx_file=CreateBowtieIdx(maindb)
+	idx_file=CreateBowtieIdx(maindb, args.plasmid_dir, args.threads)
 
 	### READS#########################
 	output_txt = open(args.output_name +".txt", "w")
@@ -321,8 +315,7 @@ def main():
 						reads_file=os.path.join(dirname2,filename)
 						threads = args.threads
 						max_k=alignmaxnumber(args.max_align,dblist)
-						depth_file=mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path)
-					
+						depth_file=mapper(idx_file,reads_file,threads,max_k, sam_file,maindb_path)					
 		
 				## Compute descritptive statistics and prints to tabular txt file
 			
@@ -354,16 +347,13 @@ def main():
 					output_txt.write("\nMean mapping depth\t")
 					for element in tmp_list_k:
 						output_txt.write(str(Mean[element]) + "\t")
-
 					output_txt.write("\n")
 				else:
 					print "cutoff value out of bounds. cutoff value must be between 0 and 1 since it is a probability"
-
-	output_txt.close()
-
+	
 	### Graphical outputs ###
-
-	bar_plot(trace_list, float(args.cutoff_number), master_keys)
+	bar_plot(trace_list, float(args.cutoff_number), master_keys, args.output_name)
+	output_txt.close()
 
 if __name__ == "__main__":
 	main()
