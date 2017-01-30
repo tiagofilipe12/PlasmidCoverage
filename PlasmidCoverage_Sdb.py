@@ -9,7 +9,6 @@ import os
 import re
 import operator
 import plotly
-import plotly.plotly as py
 import plotly.graph_objs as go
 from subprocess import Popen, PIPE, call
 from Bio import SeqIO
@@ -179,7 +178,7 @@ def DepthFileReader(depth_file, plasmid_length):
 def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
 	trace_line = go.Scatter(x=number_plasmid, y=[cutoff]*len(number_plasmid), mode = 'lines', name='cut-off', marker=dict(color= 'rgb(255, 0, 0)')) 
 	trace_list.append(trace_line)
-	# 2 bars and 1 line plot
+	# x bars and 1 line plot
 	layout = go.Layout(barmode='group', yaxis= dict(title='Percentage of plasmid length covered'))
 	fig = go.Figure(data=trace_list, layout=layout)
 	plot_url = plotly.offline.plot(fig, filename= plasmid_db_out + '.html',auto_open=False)	
