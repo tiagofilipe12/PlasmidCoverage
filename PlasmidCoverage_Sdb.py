@@ -329,7 +329,7 @@ def main():
 				list_all_v = []
 				if 0.00<=float(args.cutoff_number)<=1.00: 
 					if counter == 0:
-						output_txt.write("NOTE: outputed results for plasmids with more than "+ args.cutoff_number + " coverage.\n\n")
+						output_txt.write("NOTE: outputed results for plasmids with more than "+ args.cutoff_number + " mapping coverage.\n\n")
 						counter=1
 					for k,v in sorted_percCoverage_dic:
 						if v >= float(args.cutoff_number):
@@ -340,7 +340,7 @@ def main():
 						list_all_v.append(v)
 						list_all_k.append(k)
 					## COVERAGE PERCENTAGE ##
-					output_txt.write(fn + "\tReference Sequence\tCoverage Percentage\tMean mapping depth\n")
+					output_txt.write("Read name: "+fn + "\nReference Sequence\tCoverage Percentage\tMean mapping depth\n")
 					#count_x=0
 					for element in tmp_list_k:
 						output_txt.write(str(element)+"\t")		#outputs ref sequence
@@ -350,6 +350,7 @@ def main():
 
 					trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
 					trace_list.append(trace)
+				output_txt.write("\n")
 	
 	### Graphical outputs ###
 	bar_plot(trace_list, float(args.cutoff_number), master_keys, args.output_name)
