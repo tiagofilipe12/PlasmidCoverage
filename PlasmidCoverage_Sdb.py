@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-## Last update: 26/1/2017
+## Last update: 1/2/2017
 ## Author: T.F. Jesus
 ## This version runs with bowtie2 build 2.2.9, with multithreading for bowtie2-build
 
@@ -43,7 +43,7 @@ def fastadict(fasta_file):
 	x = 0
 	fasta_dic = {}
 	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/","[","]",":","{","}"]
-
+	sequence_list=[]
 	for line in if_handle:
 		if len(line) > 0: 
 			line = line.splitlines()[0]  
@@ -55,7 +55,8 @@ def fastadict(fasta_file):
 			x+=1
 		elif x == 0 and not line.startswith(">"):
 			print "Is this a fasta file? " + fasta_file
-			raise SystemExit
+			print fasta_file + " will be ignored"
+			break
 		elif x >=1 and line.startswith(">"):
 			fasta_dic[PlasmidName] = sequence_list	#appends last sequence to be parsed before new structure for sequence
 			sequence_list =[]
@@ -65,7 +66,8 @@ def fastadict(fasta_file):
 			x+=1
 		else:
 			sequence_list.append(line)
-	fasta_dic[PlasmidName] = sequence_list	#appends last sequence on the fasta
+	if sequence_list:
+		fasta_dic[PlasmidName] = sequence_list	#appends last sequence on the fasta
 	if_handle.close()
 	return fasta_dic
 
@@ -271,6 +273,7 @@ def main():
 	parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
 	parser.add_argument('-o','--output', dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. No need for file extension!')
 	parser.add_argument('-c','--cutoff', dest='cutoff_number', default = "0.00", help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0.00-1.00')
+#	parser.add_argument('--only-plasmid', dest='only_plasmid', action='store_true', help='If you just want to have the result of plasmid sequences rather than whole reads (chromosomal + plasmid reads).') ## Still not implemented
 	args = parser.parse_args()
 
 	## Lists and dictionaries
@@ -337,18 +340,16 @@ def main():
 						list_all_v.append(v)
 						list_all_k.append(k)
 					## COVERAGE PERCENTAGE ##
-					output_txt.write(fn + "\t" + ("\t").join(tmp_list_k) + "\nCoverage Percentage\t")
-					for element in tmp_list_v:
-						output_txt.write(str(element) +"\t")
+					output_txt.write(fn + "\tReference Sequence\tCoverage Percentage\tMean mapping depth\n")
+					#count_x=0
+					for element in tmp_list_k:
+						output_txt.write(str(element)+"\t")		#outputs ref sequence
+						output_txt.write(str(Percentage_BasesCovered[element]) +"\t")		#outputs coverage percentage
+						output_txt.write(str(Mean[element])+"\n")	#outputs mean mapping depth
+					#	count_x += 1
+
 					trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
 					trace_list.append(trace)
-					## MEAN ##
-					output_txt.write("\nMean mapping depth\t")
-					for element in tmp_list_k:
-						output_txt.write(str(Mean[element]) + "\t")
-					output_txt.write("\n")
-				else:
-					print "cutoff value out of bounds. cutoff value must be between 0 and 1 since it is a probability"
 	
 	### Graphical outputs ###
 	bar_plot(trace_list, float(args.cutoff_number), master_keys, args.output_name)
