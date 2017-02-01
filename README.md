@@ -23,3 +23,19 @@ In both versions, .gb files are also supported. These files will be converted in
 
 **'-c'**,**'--cutoff'**, dest='cutoff_number', help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0-1.')
 
+#### Acessory tools
+
+##### plasmid_or_not.py
+
+Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). This script is intended to separate reads from plasmids (or other type of sequences that have a database in fasta format) from reads for mixed libraries of chromosomal + plasmid reads.
+
+###### Options for plasmid_or_not.py
+
+**'-p'**,**'--plasmid'**, dest='plasmid', nargs='+', required=True, help='Provide the plasmid fastas'
+**'-r'**,**'--read'**, dest='reads', nargs='+', required=True, help='Provide the path to the directory containing reads fastas'
+**'-t'**, **'--threads'**, dest='threads', default="1", help="Specify the number of threads to be used by bowtie2"
+**'-o'**,**'--output'**, dest='output_name', required=True, help='Specify the output name you wish. No need for file extension! Output file will be a fasta.'
+**'-unmap'**,**'--unmapped'**, dest='unmapped_reads', action='store_true', help='By default this script attempts to save sequences available in the provided read files. If you want to save the reads that do not belong to plasmids, use this option.'
+
+
+
