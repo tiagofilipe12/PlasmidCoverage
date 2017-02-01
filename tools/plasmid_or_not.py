@@ -10,14 +10,6 @@ from subprocess import Popen, PIPE, call
 import os
 import re
 
-## Retrieves the max number of alignements per reference sequence, per bowtie run
-def alignmaxnumber(max_align, dblist):
-	if max_align:
-		k_value=max_align
-	else:
-		k_value = str(len(dblist))
-	return k_value
-
 ## Function to fix several issues that fasta header names can have with some programs 
 def header_fix(input_header):
 	problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/","[","]",":","{","}"]
@@ -59,13 +51,13 @@ def createbowtieidx(filename, threads):
 	return idx_file
 
 ##Runs bowtie and samtools to retrieve either the plasmid filtered sequences or chromossomal sequences from reads making a unique file with plasmid or chromossomes reads only
-def mapper(idx_file,read,threads,k_value,main_file, output_name, unmapped):
+def mapper(idx_file,read,threads,main_file, output_name, unmapped):
 	## specify bam and sam file names
 	print read
 	sam_file = os.path.basename(read).split(".")[0] +"_"+ output_name + ".sam"
 	bam_file = sam_file[:-3]+'bam'
 	## Runs the three commands necessary to have only unmapped reads
-	btc ='bowtie2 -x '+idx_file+' -U '+read+' -p ' +threads+ ' -k '+ k_value + ' -5 15 -S '+ sam_file
+	btc ='bowtie2 -x '+idx_file+' -U '+read+' -p ' +threads+ ' -5 15 -S '+ sam_file
 	print "1) " + btc
 	proc1=Popen(btc, stdout = PIPE, stderr = PIPE, shell=True)
 	proc1.wait()
@@ -105,7 +97,6 @@ def main():
 	parser.add_argument('-p','--plasmid', dest='plasmid', nargs='+', required=True, help='Provide the plasmid fastas')
 	parser.add_argument('-r','--read', dest='reads', nargs='+', required=True, help='Provide the path to the directory containing reads fastas')
 	parser.add_argument('-t', '--threads', dest='threads', default="1", help="Specify the number of threads to be used by bowtie2")
-	parser.add_argument('-k', "--max_align", dest="max_align", help="Specify the maximum number of alignments possible for each read. This options changes -k parameter of Bowtie2. By default this script will set -k to the number of fastas in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3.")
 	parser.add_argument('-o','--output', dest='output_name', required=True, help='Specify the output name you wish. No need for file extension!')
 	parser.add_argument('-unmap','--unmapped', dest='unmapped_reads', action='store_true', help='By default this script attempts to save sequences available in the provided read files. If you want to save the reads that do not belong to plasmids, use this option.')
 	args = parser.parse_args()
@@ -119,10 +110,9 @@ def main():
 		if any (x in filename for x in [".fas",".fasta",".fna",".fsa", ".fa"]):
 			fastas.append(filename)
 	for read in args.reads:
-		k_value=alignmaxnumber(args.max_align, fastas)
 		main_file=master_fasta(fastas, args.output_name)
 		idx_file=createbowtieidx(main_file, threads)
-		mapper(idx_file,read,threads,k_value,main_file, args.output_name, args.unmapped_reads)
+		mapper(idx_file,read,threads,main_file, args.output_name, args.unmapped_reads)
 
 if __name__ == "__main__":
 	main()
