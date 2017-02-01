@@ -23,7 +23,7 @@ In both versions, .gb files are also supported. These files will be converted in
 
 **'-c'**,**'--cutoff'**, dest='cutoff_number', help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0-1.')
 
-####Acessory tools
+#### *Acessory tools
 
 **plasmid_or_not.py**
 
