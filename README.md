@@ -25,7 +25,7 @@ In both versions, .gb files are also supported. These files will be converted in
 
 ####Acessory tools
 
-#####*plasmid_or_not.py
+***plasmid_or_not.py**
 
 Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). This script is intended to separate reads from plasmids (or other type of sequences that have a database in fasta format) from reads for mixed libraries of chromosomal + plasmid reads.
 
