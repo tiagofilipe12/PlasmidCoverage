@@ -14,7 +14,6 @@ from subprocess import Popen, PIPE, call
 from Bio import SeqIO
 from time import time
 from datetime import datetime
-from shutil import copyfile
 
 
 #TODO: 
