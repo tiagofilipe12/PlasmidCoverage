@@ -14,6 +14,7 @@ from subprocess import Popen, PIPE, call
 from Bio import SeqIO
 from time import time
 from datetime import datetime
+import json
 
 
 #TODO: 
@@ -48,7 +49,7 @@ def fastadict(fasta_file):
 			line = line.splitlines()[0]  
 		if x == 0 and line.startswith(">"):
 			sequence_list =[]
-			PlasmidName = line[1:]
+			PlasmidName = "_".join(line[1:].split("|")[0:2]) ## stores only the gi for the reference
 			for char in problematic_characters:
 					PlasmidName = PlasmidName.replace(char, '_')
 			x+=1
@@ -59,9 +60,9 @@ def fastadict(fasta_file):
 		elif x >=1 and line.startswith(">"):
 			fasta_dic[PlasmidName] = sequence_list	#appends last sequence to be parsed before new structure for sequence
 			sequence_list =[]
-			PlasmidName = line[1:]
+			PlasmidName = "_".join(line[1:].split("|")[0:2])
 			for char in problematic_characters:
-					PlasmidName = PlasmidName.replace(char, '_')
+					PlasmidName = PlasmidName.replace(char, '_') ## stores only the gi for the reference
 			x+=1
 		else:
 			sequence_list.append(line)
@@ -76,6 +77,7 @@ def SequenceLengthFromFasta(fasta_file,plasmid_length,fasta_path):
 	print len(fasta_dic.values())
 	out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
 	for key in fasta_dic:
+		key = "_".join(key.split("_")[0:2]) ## stores only the gi for the reference
 		plasmid_length[key]=sum(len(s) for s in fasta_dic[key])
 		out_handle.write('>' + key + '\n' + ''.join(fasta_dic[key]) + '\n')
 	out_handle.close()
@@ -164,7 +166,7 @@ def DepthFileReader(depth_file, plasmid_length):
 	depth_dic_coverage = {}
 	for line in depth_info:
 		tab_split = line.split("\t")
-		Reference = tab_split[0].strip()
+		Reference = "_".join(tab_split[0].strip().split("_")[0:2]) ## stores only the gi for the reference
 		Position = tab_split[1]
 		NumReadsAlign = float(tab_split[2].rstrip("\n"))
 		if Reference not in depth_dic_coverage:
@@ -296,6 +298,7 @@ def main():
 
 	### READS#########################
 	output_txt = open(args.output_name +".txt", "w")
+	
 	master_keys = []
 	trace_list = []
 	counter=0 # counter used to control output file
@@ -322,11 +325,16 @@ def main():
 			
 				Percentage_BasesCovered, Mean = DepthFileReader(depth_file, plasmid_length)
 				sorted_percCoverage_dic = sorted(Percentage_BasesCovered.items(), key=operator.itemgetter(1), reverse=True)
+
 				tmp_list_k = []
 				tmp_list_v = []
 				list_all_k = []
 				list_all_v = []
 				if 0.00<=float(args.cutoff_number)<=1.00: 
+					## outputs a json file per input file 
+					output_json = open(args.output_name + fn +".json", "w") ## new output json
+					json_dict = {}
+
 					if counter == 0:
 						output_txt.write("NOTE: outputed results for plasmids with more than "+ args.cutoff_number + " mapping coverage.\n\n")
 						counter=1
@@ -334,6 +342,7 @@ def main():
 						if v >= float(args.cutoff_number):
 							tmp_list_k.append(k)
 							tmp_list_v.append(v)
+							json_dict[k]=v
 						if k not in master_keys:
 							master_keys.append(k)
 						list_all_v.append(v)
@@ -350,6 +359,9 @@ def main():
 					trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
 					trace_list.append(trace)
 				output_txt.write("\n")
+				print(json_dict)
+				output_json.write(json.dumps(json_dict))
+				output_json.close()
 	
 	### Graphical outputs ###
 	bar_plot(trace_list, float(args.cutoff_number), master_keys, args.output_name)
