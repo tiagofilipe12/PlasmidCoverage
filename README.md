@@ -48,7 +48,7 @@ Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). 
 
 Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). This script compares two json files with coverage percentage per gi (json files retrieved by PlasmidCoverage_Sdb.py.
 
-##### Options for diffs_json-py
+##### Options for diffs_json.py
 
 **-i**,**--input_jsons** - Provide the input json files of interest.
 
