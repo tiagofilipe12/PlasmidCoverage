@@ -1,4 +1,4 @@
-#PlasmidCoverage_Sdb.py
+# PlasmidCoverage_Sdb.py
 Initial tests in finding plasmid coverages from reads and inferring plasmid contents
 
 For now, this developing branch of this repo provide two versions of the same script:
@@ -9,7 +9,7 @@ For now, this developing branch of this repo provide two versions of the same sc
 
 In both versions, .gb files are also supported. These files will be converted into fasta files in a subdirectory named "fasta" within the directory the user specifies for plasmid.
 
-###Options for PlasmidCoverage_Sdb.py:
+### Options for PlasmidCoverage_Sdb.py:
 
 **'-p'**,**'--plasmid'**, dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas.'
 
@@ -25,13 +25,13 @@ In both versions, .gb files are also supported. These files will be converted in
 
 ---
 
-####- Acessory tools
+#### - Acessory tools
 
 **plasmid_or_not.py**
 
 Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). This script is intended to separate reads from plasmids (or other type of sequences that have a database in fasta format) from reads for mixed libraries of chromosomal + plasmid reads.
 
-######Options for plasmid_or_not.py
+###### Options for plasmid_or_not.py
 
 **'-p'**,**'--plasmid'**, dest='plasmid', nargs='+', required=True, help='Provide the plasmid fastas'
 
@@ -43,5 +43,15 @@ Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). 
 
 **'-unmap'**,**'--unmapped'**, dest='unmapped_reads', action='store_true', help='By default this script attempts to save sequences available in the provided read files. If you want to save the reads that do not belong to plasmids, use this option.'
 
+
+**diffs_json.py**
+
+Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). This script compares two json files with coverage percentage per gi (json files retrieved by PlasmidCoverage_Sdb.py.
+
+##### Options for diffs_json-py
+
+**-i**,**--input_jsons** - Provide the input json files of interest.
+
+**-c**,**--cutoff** - Provide the cutoff value used for the minimum coverage allowed to be outputed to json files. This value should be equal in both files to compare.
 
 
