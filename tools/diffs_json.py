@@ -78,10 +78,7 @@ def main():
 	jsons = []
 	## checks if json is in same directory
 	for json_f in jsonfiles:
-		if "/" in json_f:
-			jsons.append(json_f.split("/")[-1])
-		else:
-			jsons.append(json_f)
+		jsons.append(os.path.basename(json_f))
 
 	list_of_json=load_jsons(jsonfiles)
 
