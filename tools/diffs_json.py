@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 """
-Last update: 24/3/2017
+Last update: 21/4/2017
 Author: T.F. Jesus
 This script takes json fils and compares them using output jsons from mashix.
 Please note that it only compares two json files
