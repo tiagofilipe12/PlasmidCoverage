@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-## Last update: 19/4/2017
+## Last update: 2/5/2017
 ## Author: T.F. Jesus
 ## This version runs with bowtie2 build 2.2.9, with multithreading for bowtie2-build
 
@@ -366,9 +366,9 @@ def main():
 
     plasmid_length = {}
     strain_list = []
-    pidx2name = {}
+    #pidx2name = {}
     dblist = []
-    sam_dict = {}
+    #sam_dict = {}
 
     ## Process plasmids references into a single fasta
 
@@ -392,6 +392,7 @@ def main():
     file_reset = False
     for dirname, dirnames, filenames in os.walk(args.read_dir):
         for subdirname in dirnames:
+
             for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,
                                                         subdirname)):
                 for filename in filenames2:
