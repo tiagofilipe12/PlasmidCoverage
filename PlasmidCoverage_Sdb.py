@@ -54,8 +54,9 @@ def fastadict(fasta_file):
         if x == 0 and line.startswith(">"):
             sequence_list = []
             PlasmidName = "_".join(line[1:].split("|")[0:2])  ## stores only the gi for the reference
-            for char in problematic_characters:
-                PlasmidName = PlasmidName.replace(char, '_')
+            for char in PlasmidName:
+                if char in problematic_characters:
+                    PlasmidName = PlasmidName.replace(char, '_')
             x += 1
         elif x == 0 and not line.startswith(">"):
             print("Is this a fasta file? " + fasta_file)
@@ -66,8 +67,9 @@ def fastadict(fasta_file):
                 PlasmidName] = sequence_list  # appends last sequence to be parsed before new structure for sequence
             sequence_list = []
             PlasmidName = "_".join(line[1:].split("|")[0:2])
-            for char in problematic_characters:
-                PlasmidName = PlasmidName.replace(char, '_')  ## stores only the gi for the reference
+            for char in PlasmidName:
+                if char in problematic_characters:
+                    PlasmidName = PlasmidName.replace(char, '_')  ## stores only the gi for the reference
             x += 1
         else:
             sequence_list.append(line)
@@ -95,8 +97,9 @@ def ExtractFastaPlasmids(gbkfile, fastafile, plasmid_length):
     problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/",
                               "[", "]", ":", "{", "}"]
     plasmid_name = gbkdata.description[:-1]
-    for char in problematic_characters:
-        plasmid_name = plasmid_name.replace(char, '_')
+    for char in plasmid_name:
+        if char in problematic_characters:
+            plasmid_name = plasmid_name.replace(char, '_')
     sequence = str(gbkdata.seq)
     if not sequence.endswith("\n"):
         sequence = sequence + "\n"
