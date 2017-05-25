@@ -9,6 +9,10 @@ For now, this developing branch of this repo provide two versions of the same sc
 
 In both versions, .gb files are also supported. These files will be converted into fasta files in a subdirectory named "fasta" within the directory the user specifies for plasmid.
 
+## Dependencies
+* plotly - ```pip install plotly```
+* bowtie2 (tested for version 2.2.9)
+
 ### Options for PlasmidCoverage_Sdb.py:
 
 **'-p'**,**'--plasmid'**, dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas.'
