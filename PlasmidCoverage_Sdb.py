@@ -369,19 +369,27 @@ def main():
     #pidx2name = {}
     dblist = []
     #sam_dict = {}
+    plasmids_dir = args.plasmid_dir
+    reads_dir = args.read_dir
+
+    ## check the format of input directories to -r and -p options
+    if not plasmids_dir.endswith("/"):
+        plasmid_dir = plasmid_dir + "/"
+    if not reads_dir.endswith("/"):
+        reads_dir = reads_dir + "/"
 
     ## Process plasmids references into a single fasta
 
-    maindb, count_entries = PlasmidProcessing(dblist, args.plasmid_dir,
+    maindb, count_entries = PlasmidProcessing(dblist, plasmids_dir,
                                               plasmid_length, args.output_name)
     print(count_entries)
-    maindb_path = os.path.join(args.plasmid_dir + "fasta/" + maindb)
+    maindb_path = os.path.join(plasmids_dir + "fasta/" + maindb)
 
     ## Deletes temporary fastas created during PlasmidProcessing function
-    deltemp(os.path.join(args.plasmid_dir + "fasta/"))
+    deltemp(os.path.join(plasmids_dir + "fasta/"))
 
     ##Create Bowtie Idx files for plasmid references
-    idx_file = CreateBowtieIdx(maindb, args.plasmid_dir, args.threads)
+    idx_file = CreateBowtieIdx(maindb, plasmids_dir, args.threads)
 
     ### READS#########################
     output_txt = open(args.output_name + ".txt", "w")
@@ -390,7 +398,7 @@ def main():
     trace_list = []
     counter = 0  # counter used to control output file
     file_reset = False
-    for dirname, dirnames, filenames in os.walk(args.read_dir):
+    for dirname, dirnames, filenames in os.walk(reads_dir):
         for subdirname in dirnames:
 
             for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,
