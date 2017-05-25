@@ -3,7 +3,7 @@ Initial tests in finding plasmid coverages from reads and inferring plasmid cont
 
 For now, this developing branch of this repo provide two versions of the same script:
 
-* Version *PlasmidCoverage.py* maps against only one plasmid sequence.
+* Version *PlasmidCoverage.py* maps against only one plasmid sequence. This option is deprecated however you can still use it. Just make sure you install prettytable - `pip install prettytable`
 
 * Version *PlasmidCoverage_Sdb.py* allows users to compile multiple fastas into one or having one multi-fasta file to calculate plasmid coverage. 
 
