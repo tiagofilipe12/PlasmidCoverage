@@ -11,7 +11,6 @@ import operator
 import plotly
 import plotly.graph_objs as go
 from subprocess import Popen, PIPE, call
-from Bio import SeqIO
 from time import time
 from datetime import datetime
 import json
