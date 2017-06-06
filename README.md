@@ -14,12 +14,15 @@ In both versions, .gb files are also supported. These files will be converted in
 * plotly - ```pip install plotly```
 * bowtie2 (tested for version 2.2.9)
 
+You can now simply: ```pip install -r requirements.txt```
+
 ## Important note regarding the parsing of argument -r
 
 You should provide the path to the directory containing the directories with the reads (.fastq files). For instance if you have something like `~/Reads/sample1/example.fastq` and `~/Reads/sample2/example2.fastq`, you should provide `~/Reads` as the argument for `-r` option.
 
 ### Options for PlasmidCoverage_Sdb.py:
 
+```
 **'-p'**,**'--plasmid'**, dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas.'
 
 **'-r'**,**'--read'**, dest='read_dir', required=True, help='Provide the path to the directory containing reads fastas.'
@@ -33,6 +36,7 @@ You should provide the path to the directory containing the directories with the
 **'-o'**,**'--output'**, dest='output_name', default="plasmid_db_out", help='Specify the output name you wish. There is no need of file extension.')
 
 **'-c'**,**'--cutoff'**, dest='cutoff_number', help='Specify the cutoff for percentage of plasmid coverage that reads must have to be in the output. This should be a number between 0-1.')
+```
 
 ---
 
@@ -43,7 +47,7 @@ You should provide the path to the directory containing the directories with the
 Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). This script is intended to separate reads from plasmids (or other type of sequences that have a database in fasta format) from reads for mixed libraries of chromosomal + plasmid reads.
 
 ###### Options for plasmid_or_not.py
-
+```
 **'-p'**,**'--plasmid'**, dest='plasmid', nargs='+', required=True, help='Provide the plasmid fastas'
 
 **'-r'**,**'--read'**, dest='reads', nargs='+', required=True, help='Provide the path to the directory containing reads fastas'
@@ -53,16 +57,16 @@ Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). 
 **'-o'**,**'--output'**, dest='output_name', required=True, help='Specify the output name you wish. No need for file extension! Output file will be a fasta.'
 
 **'-unmap'**,**'--unmapped'**, dest='unmapped_reads', action='store_true', help='By default this script attempts to save sequences available in the provided read files. If you want to save the reads that do not belong to plasmids, use this option.'
-
+```
 
 **diffs_json.py**
 
 Currently this tool is separated from the main script (PlasmidCoverage_Sdb.py). This script compares two json files with coverage percentage per gi (json files retrieved by PlasmidCoverage_Sdb.py.
 
 ##### Options for diffs_json.py
-
+```
 **-i**,**--input_jsons** - Provide the input json files of interest.
 
 **-c**,**--cutoff** - Provide the cutoff value used for the minimum coverage allowed to be outputed to json files. This value should be equal in both files to compare.
-
+```
 
