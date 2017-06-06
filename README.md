@@ -1,5 +1,6 @@
 # PlasmidCoverage_Sdb.py
-Initial tests in finding plasmid coverages from reads and inferring plasmid contents
+
+[![Build Status](https://travis-ci.org/tiagofilipe12/PlasmidCoverage.svg?branch=master)](https://travis-ci.org/tiagofilipe12/PlasmidCoverage)
 
 For now, this developing branch of this repo provide two versions of the same script:
 
