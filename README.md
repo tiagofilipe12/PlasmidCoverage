@@ -1,6 +1,7 @@
 # PlasmidCoverage_Sdb.py
 
 [![Build Status](https://travis-ci.org/tiagofilipe12/PlasmidCoverage.svg?branch=master)](https://travis-ci.org/tiagofilipe12/PlasmidCoverage)
+[![Codacy Badge](https://api.codacy.com/project/badge/Grade/4ecf8dfe775746f4bc5f3d154a7207df)](https://www.codacy.com/app/tiagofilipe12/PlasmidCoverage?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tiagofilipe12/PlasmidCoverage&amp;utm_campaign=Badge_Grade)
 
 For now, this developing branch of this repo provide two versions of the same script:
 
