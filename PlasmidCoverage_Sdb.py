@@ -235,7 +235,7 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
             if filename.endswith('.gb'):
                 pct += 1
                 print("Plasmid (.gb) file found: " + filename)
-                print
+                print("\n")
                 "#:" + str(pct)
                 gbfile = os.path.join(dirname, filename)
                 folderexist(os.path.join(dirname + "fasta"))
@@ -287,7 +287,7 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
 
     print("==============================================================="
           "======")
-    print
+    print("\n")
 
     # CONCATENATES ALL PLASMID FASTA INTO A SINGLE DB #
     # This avoids the mapping of reads to a "worst matching" plasmid#
@@ -420,12 +420,12 @@ def main():
                     if filename.find('fastq') != -1:
                         fn = filename.split('.')[0]
                         strain_list.append(fn)
-                        print
+                        print("\n")
                         print("+++++++++++++++++++++++++++++++++++++++++++++++"
                               "++++++++++++++++++++++++++++++++++++++++")
-                        print
+                        print("\n")
                         print("Filename: " + filename)
-                        print
+                        print("\n")
                         datetime.fromtimestamp(time()).strftime(
                             '%Y-%m-%d %H:%M:%S')
                         # print "Mapping "+ filename+" vs "+ maindb_path

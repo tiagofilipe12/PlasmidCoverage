@@ -6,7 +6,7 @@
 ## This script filters reads, given a plasmid database, allowing for example to separate both chromossomal reads from plasmid reads.
 
 import argparse
-from subprocess import Popen, PIPE, call
+from subprocess import Popen, PIPE
 import os
 import re
 
@@ -61,7 +61,7 @@ def mapper(idx_file,read,threads,main_file, output_name, unmapped):
 	print "1) " + btc
 	proc1=Popen(btc, stdout = PIPE, stderr = PIPE, shell=True)
 	proc1.wait()
-	out,err= proc1.communicate()
+	err= proc1.communicate()
 	print err
 	regex_match=re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate',err)
 	alignment_rate=regex_match.group(0).split('%')[0]
