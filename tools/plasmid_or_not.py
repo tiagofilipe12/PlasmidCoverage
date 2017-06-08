@@ -80,7 +80,7 @@ def mapper(idx_file, read, threads, main_file, output_name, unmapped):
         sam_file
     ]
     print "1) " + " ".join(btc)
-    proc1 = Popen(btc, stdout=PIPE, stderr=PIPE, shell=True)
+    proc1 = Popen(btc, stdout=PIPE, stderr=PIPE)
     proc1.wait()
     err = proc1.communicate()
     print err
