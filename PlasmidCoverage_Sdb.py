@@ -1,8 +1,9 @@
 #!/usr/bin/env python
 
-## Last update: 2/5/2017
-## Author: T.F. Jesus
-## This version runs with bowtie2 build 2.2.9, with multithreading for bowtie2-build
+# Last update: 2/5/2017
+# Author: T.F. Jesus
+# This version runs with bowtie2 build 2.2.9, with multithreading for
+# bowtie2-build
 
 import argparse
 import os
@@ -11,13 +12,15 @@ import operator
 import plotly
 import plotly.graph_objs as go
 from subprocess import Popen, PIPE, call
+from Bio import SeqIO
 from time import time
 from datetime import datetime
 import json
 
 
 # TODO:
-# 1) Set a minnimun read threshold to avoid computation on less than x reads mapped (depth_file?)
+# 1) Set a minnimun read threshold to avoid computation on less than x reads
+# mapped (depth_file?)
 # 4) delete unsorted BAM files
 # 5) Create directory structure to store all comparisons.
 
@@ -29,7 +32,7 @@ def alignmaxnumber(max_align, count_entries):
     return k_value
 
 
-def FolderExist(directory):
+def folderexist(directory):
     if not directory.endswith("/"):
         directory = directory + "/"
     if not os.path.exists(os.path.join(directory)):
@@ -52,10 +55,11 @@ def fastadict(fasta_file):
             line = line.splitlines()[0]
         if x == 0 and line.startswith(">"):
             sequence_list = []
-            PlasmidName = "_".join(line[1:].split("|")[0:2])  ## stores only the gi for the reference
-            for char in PlasmidName:
+            plasmidname = "_".join(line[1:].split("|")[0:2])  # stores only the
+            #  gi for the reference
+            for char in plasmidname:
                 if char in problematic_characters:
-                    PlasmidName = PlasmidName.replace(char, '_')
+                    plasmidname = plasmidname.replace(char, '_')
             x += 1
         elif x == 0 and not line.startswith(">"):
             print("Is this a fasta file? " + fasta_file)
@@ -63,34 +67,37 @@ def fastadict(fasta_file):
             break
         elif x >= 1 and line.startswith(">"):
             fasta_dic[
-                PlasmidName] = sequence_list  # appends last sequence to be parsed before new structure for sequence
+                plasmidname] = sequence_list  # appends last sequence to be
+            # parsed before new structure for sequence
             sequence_list = []
-            PlasmidName = "_".join(line[1:].split("|")[0:2])
-            for char in PlasmidName:
+            plasmidname = "_".join(line[1:].split("|")[0:2])
+            for char in plasmidname:
                 if char in problematic_characters:
-                    PlasmidName = PlasmidName.replace(char, '_')  ## stores only the gi for the reference
+                    plasmidname = plasmidname.replace(char, '_')  # stores only
+                    #  the gi for the reference
             x += 1
         else:
             sequence_list.append(line)
     if sequence_list:
-        fasta_dic[PlasmidName] = sequence_list  # appends last sequence on the fasta
+        fasta_dic[plasmidname] = sequence_list  # appends last sequence on the
+        # fasta
     if_handle.close()
     return fasta_dic
 
 
-def SequenceLengthFromFasta(fasta_file, plasmid_length, fasta_path):
+def sequencelengthfromfasta(fasta_file, plasmid_length, fasta_path):
     fasta_dic = fastadict(fasta_file)
-    #print len(fasta_dic.keys())
     out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
     for key in fasta_dic:
-        key = "_".join(key.split("_")[0:2])  ## stores only the gi for the reference
+        key = "_".join(key.split("_")[0:2])  # stores only the gi for the
+        # reference
         plasmid_length[key] = sum(len(s) for s in fasta_dic[key])
         out_handle.write('>' + key + '\n' + ''.join(fasta_dic[key]) + '\n')
     out_handle.close()
     return plasmid_length, len(fasta_dic.keys())
 
 
-def ExtractFastaPlasmids(gbkfile, fastafile, plasmid_length):
+def extractfastaplasmids(gbkfile, fastafile, plasmid_length):
     if_handle = open(gbkfile, 'r')
     gbkdata = SeqIO.read(if_handle, "genbank")
     problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/",
@@ -113,7 +120,7 @@ def ExtractFastaPlasmids(gbkfile, fastafile, plasmid_length):
     return plasmid_length
 
 
-def CreateBowtieIdx(filename, dirname, threads):
+def createbowtieidx(filename, dirname, threads):
     check = ""
     if not os.path.exists(os.path.join(dirname + "bowtie2idx")):
         os.makedirs(os.path.join(dirname + "bowtie2idx"))
@@ -140,7 +147,7 @@ def CreateBowtieIdx(filename, dirname, threads):
     return idx_file
 
 
-def FastaConcatenation(dblist, output_name, plasmid_dir):
+def fastaconcatenation(dblist, output_name, plasmid_dir):
     print(dblist)
     main_filename = output_name + ".fasta"
     dirname = os.path.join(plasmid_dir, "fasta", "")
@@ -154,7 +161,7 @@ def FastaConcatenation(dblist, output_name, plasmid_dir):
     return main_filename
 
 
-## function to delete temporary fasta files
+# function to delete temporary fasta files
 def deltemp(directory):
     files = os.listdir(directory)
     print("Deleting temporary fasta files in: " + directory)
@@ -163,8 +170,9 @@ def deltemp(directory):
             os.remove(os.path.join(directory, f))
 
 
-## Creates an alignment for each .sam file (per reads file) and outputs a dictionary with keys = reads and values =
-## Still not implemented
+# Creates an alignment for each .sam file (per reads file) and outputs a
+# dictionary with keys = reads and values =
+# Still not implemented
 # def SamDictMultipleHits(samfile):
 #	input_sam = open(samfile,"r+")
 #	for line in input_sam:
@@ -179,24 +187,25 @@ def deltemp(directory):
 #				sam_dict[Read]= [Flag, Ref, Leftmost_pos, Seq_lenght]
 #	return sam_dict
 
-def DepthFileReader(depth_file, plasmid_length):
+def depthfilereader(depth_file, plasmid_length):
     depth_info = open(depth_file, "r")
     depth_dic_coverage = {}
     for line in depth_info:
         tab_split = line.split("\t")
-        Reference = "_".join(tab_split[0].strip().split("_")[0:2])  ## stores only the gi for the reference
-        Position = tab_split[1]
-        NumReadsAlign = float(tab_split[2].rstrip("\n"))
-        if Reference not in depth_dic_coverage:
-            depth_dic_coverage[Reference] = {}
-        depth_dic_coverage[Reference][Position] = NumReadsAlign
-    Percentage_BasesCovered, Mean = {}, {}
+        reference = "_".join(tab_split[0].strip().split("_")[0:2])  # stores
+        # only the gi for the reference
+        position = tab_split[1]
+        numreadsalign = float(tab_split[2].rstrip("\n"))
+        if reference not in depth_dic_coverage:
+            depth_dic_coverage[reference] = {}
+        depth_dic_coverage[reference][position] = numreadsalign
+    percentage_basescovered, Mean = {}, {}
     for ref in depth_dic_coverage:
-        Percentage_BasesCovered[ref] = float(len(depth_dic_coverage[ref])) / \
+        percentage_basescovered[ref] = float(len(depth_dic_coverage[ref])) / \
                                        float(plasmid_length[ref])
         Mean[ref] = sum(depth_dic_coverage[ref].values()) / \
                     len(depth_dic_coverage[ref])
-    return Percentage_BasesCovered, Mean
+    return percentage_basescovered, Mean
 
 
 def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
@@ -209,12 +218,12 @@ def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
                                                          'plasmid length '
                                                          'covered'))
     fig = go.Figure(data=trace_list, layout=layout)
-    plot_url = plotly.offline.plot(fig, filename=plasmid_db_out + '.html',
+    plotly.offline.plot(fig, filename=plasmid_db_out + '.html',
                                    auto_open=False)
 
 
-############# PLASMIDS ##################
-def PlasmidProcessing(dblist, plasmids_path, plasmid_length, output_name):
+# PLASMIDS #
+def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
     count_entries = 0
     print("===================================================================")
     print("Processing Plasmids in " + plasmids_path)
@@ -229,14 +238,14 @@ def PlasmidProcessing(dblist, plasmids_path, plasmid_length, output_name):
                 print
                 "#:" + str(pct)
                 gbfile = os.path.join(dirname, filename)
-                FolderExist(os.path.join(dirname + "fasta"))
+                folderexist(os.path.join(dirname + "fasta"))
                 fasta_file = os.path.join(dirname, 'fasta',
                                           filename[:-len('.gb')]) + '.fasta'
                 if not (os.path.exists(fasta_file)):
                     print("Fasta file not file. Converting...")
                     # If fasta not found Transform .gb to .fasta
                     print("Creating fasta: " + fasta_file + "...")
-                    plasmid_length = ExtractFastaPlasmids(gbfile, fasta_file,
+                    plasmid_length = extractfastaplasmids(gbfile, fasta_file,
                                                           plasmid_length)
                 else:
                     print("Fasta Found! No conversion needed")
@@ -244,14 +253,14 @@ def PlasmidProcessing(dblist, plasmids_path, plasmid_length, output_name):
                     fasta_path = os.path.join(dirname, 'fasta',
                                               os.path.splitext(filename)[0]) + \
                                  '.fasta'
-                    plasmid_length, fasta_entries = SequenceLengthFromFasta(fasta_file,
-                                                    plasmid_length, fasta_path)
+                    plasmid_length, fasta_entries = sequencelengthfromfasta(
+                        fasta_file, plasmid_length, fasta_path)
                     fasta_file = fasta_path + ".temp"
                     dblist.append(fasta_file)
             elif any(x in filename for x in [".fas", ".fasta", ".fna",
                                              ".fsa", ".fa"]):
                 # if it is a fasta file extension
-                FolderExist(os.path.join(dirname + "fasta"))
+                folderexist(os.path.join(dirname + "fasta"))
                 pct += 1
                 print("Plasmid file (.fasta) found: " + filename)
                 print("#:" + str(pct))
@@ -264,26 +273,27 @@ def PlasmidProcessing(dblist, plasmids_path, plasmid_length, output_name):
                 print("Fasta Found! No conversion needed (.fasta)")
                 # copyfile(fasta_file, fasta_path)
                 # if there was a previous .gb->.fasta conversion
-                plasmid_length, fasta_entries = SequenceLengthFromFasta(fasta_file,
-                                                plasmid_length, fasta_path)
+                plasmid_length, fasta_entries = sequencelengthfromfasta(
+                    fasta_file, plasmid_length, fasta_path)
                 count_entries += fasta_entries
                 fasta_file = fasta_path + ".temp"
                 dblist.append(fasta_file)
             else:
-                print("File extension {0} not recognized! Are you sure this is"  
-                    " a fasta or gb file? Extensions autorized are .gb, .fas,"
-                    " .fasta, .fna, .fsa or .fa".format(
-                        os.path.splitext(filename)[
-                            1]))
+                print("File extension {0} not recognized! Are you sure this is"
+                      " a fasta or gb file? Extensions autorized are .gb, .fas,"
+                      " .fasta, .fna, .fsa or .fa".format(
+                    os.path.splitext(filename)[
+                        1]))
 
     print("==============================================================="
           "======")
     print
 
-    ## CONCATENATES ALL PLASMID FASTA INTO A SINGLE DB ######################################
-    ## This avoids the mapping of reads to a "worst matching" plasmid########################
-    ## Instead reads will now be matched against the best scoring plasmid in the entire db###
-    main_db = FastaConcatenation(dblist, output_name, plasmids_path)
+    # CONCATENATES ALL PLASMID FASTA INTO A SINGLE DB #
+    # This avoids the mapping of reads to a "worst matching" plasmid#
+    # Instead reads will now be matched against the best scoring plasmid in
+    # the entire db#
+    main_db = fastaconcatenation(dblist, output_name, plasmids_path)
     return main_db, count_entries
 
 
@@ -301,7 +311,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
     print(err)
     regex_match = re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate', err)
     alignment_rate = regex_match.group(0).split('%')[0]
-    if alignment_rate > 0.00:
+    if alignment_rate > 0:
         print('2) ' + 'samtools faidx ' + maindb_path)
         call('samtools faidx ' + maindb_path, shell=True)
         bam_file = sam_file[:-3] + 'bam'
@@ -322,7 +332,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
         print("Creating coverage Depth File: " + depth_file)
         proc2 = Popen('samtools depth ' + sorted_bam_file + ' > ' +
                       depth_file, stdout=PIPE, stderr=PIPE, shell=True)
-        out2, err2 = proc2.communicate()
+        proc2.communicate()
         return depth_file
 
 
@@ -361,39 +371,40 @@ def main():
                              'coverage that reads must have to be in the '
                              'output. This should be a number between 0.00-1.00')
 
-    #	parser.add_argument('--only-plasmid', dest='only_plasmid', action='store_true', help='If you just want to have the result of plasmid sequences rather than whole reads (chromosomal + plasmid reads).') ## Still not implemented
+    # parser.add_argument('--only-plasmid', dest='only_plasmid',
+    # action='store_true', help='If you just want to have the result of plasmid sequences rather than whole reads (chromosomal + plasmid reads).') # Still not implemented
     args = parser.parse_args()
 
-    ## Lists and dictionaries
+    # Lists and dictionaries
 
     plasmid_length = {}
     strain_list = []
-    #pidx2name = {}
+    # pidx2name = {}
     dblist = []
-    #sam_dict = {}
+    # sam_dict = {}
     plasmids_dir = args.plasmid_dir
     reads_dir = args.read_dir
 
-    ## check the format of input directories to -r and -p options
+    # check the format of input directories to -r and -p options
     if not plasmids_dir.endswith("/"):
         plasmid_dir = plasmid_dir + "/"
     if not reads_dir.endswith("/"):
         reads_dir = reads_dir + "/"
 
-    ## Process plasmids references into a single fasta
+    # Process plasmids references into a single fasta
 
-    maindb, count_entries = PlasmidProcessing(dblist, plasmids_dir,
+    maindb, count_entries = plasmidprocessing(dblist, plasmids_dir,
                                               plasmid_length, args.output_name)
     print(count_entries)
     maindb_path = os.path.join(plasmids_dir + "fasta/" + maindb)
 
-    ## Deletes temporary fastas created during PlasmidProcessing function
+    # Deletes temporary fastas created during plasmidprocessing function
     deltemp(os.path.join(plasmids_dir + "fasta/"))
 
-    ##Create Bowtie Idx files for plasmid references
-    idx_file = CreateBowtieIdx(maindb, plasmids_dir, args.threads)
+    # Create Bowtie Idx files for plasmid references
+    idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
 
-    ### READS#########################
+    # READS#
     output_txt = open(args.output_name + ".txt", "w")
 
     master_keys = []
@@ -404,18 +415,19 @@ def main():
         for subdirname in dirnames:
 
             for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,
-                                                        subdirname)):
+                                                                        subdirname)):
                 for filename in filenames2:
                     if filename.find('fastq') != -1:
                         fn = filename.split('.')[0]
                         strain_list.append(fn)
                         print
                         print("+++++++++++++++++++++++++++++++++++++++++++++++"
-                            "++++++++++++++++++++++++++++++++++++++++")
+                              "++++++++++++++++++++++++++++++++++++++++")
                         print
                         print("Filename: " + filename)
                         print
-                        datetime.fromtimestamp(time()).strftime('%Y-%m-%d %H:%M:%S')
+                        datetime.fromtimestamp(time()).strftime(
+                            '%Y-%m-%d %H:%M:%S')
                         # print "Mapping "+ filename+" vs "+ maindb_path
                         sam_file = dirname2 + '/' + args.output_name + '_' + \
                                    subdirname + '.sam'
@@ -439,30 +451,32 @@ def main():
                                                 reads_file, threads, max_k,
                                                 sam_file, maindb_path)
 
-                ## Compute descritptive statistics and prints to tabular txt file
+                # Compute descritptive statistics and prints to tabular txt file
                 try:
-                    Percentage_BasesCovered, Mean = DepthFileReader(depth_file,
-                                                                    plasmid_length)
-                    sorted_percCoverage_dic = sorted(Percentage_BasesCovered.items(),
-                                                     key=operator.itemgetter(1),
-                                                     reverse=True)
+                    percentage_basescovered, Mean = depthfilereader(depth_file,
+                        plasmid_length)
+                    sorted_perccoverage_dic = sorted(
+                        percentage_basescovered.items(),
+                        key=operator.itemgetter(1),
+                        reverse=True)
 
                     tmp_list_k = []
                     tmp_list_v = []
                     list_all_k = []
                     list_all_v = []
-                    if 0.00 <= float(args.cutoff_number) <= 1.00:
-                        ## outputs a json file per input file
-                        output_json = open(args.output_name + fn + ".json", "w")  ## new output json
+                    if 0 <= float(args.cutoff_number) <= 1:
+                        # outputs a json file per input file
+                        output_json = open(args.output_name + fn + ".json",
+                                           "w")  # new output json
                         json_dict = {}
 
                         if counter == 0:
                             output_txt.write(
                                 "NOTE: outputed results for plasmids with "
                                 "more than " + args.cutoff_number + " mapping"
-                                " coverage.\n\n")
+                                                                    " coverage.\n\n")
                             counter = 1
-                        for k, v in sorted_percCoverage_dic:
+                        for k, v in sorted_perccoverage_dic:
                             if v >= float(args.cutoff_number):
                                 tmp_list_k.append(k)
                                 tmp_list_v.append(v)
@@ -471,17 +485,20 @@ def main():
                                 master_keys.append(k)
                             list_all_v.append(v)
                             list_all_k.append(k)
-                        ## COVERAGE PERCENTAGE ##
+                        # COVERAGE PERCENTAGE #
                         output_txt.write(
-                            "Read name: " + fn + "\nReference Sequence\t"
+                            "Read name: " + fn + "\nreference Sequence\t"
                                                  "Coverage Percentage\t"
                                                  "Mean mapping depth\n")
                         # count_x=0
                         for element in tmp_list_k:
-                            output_txt.write(str(element) + "\t")  # outputs ref sequence
                             output_txt.write(
-                                str(Percentage_BasesCovered[element]) + "\t")  # outputs coverage percentage
-                            output_txt.write(str(Mean[element]) + "\n")  # outputs mean mapping depth
+                                str(element) + "\t")  # outputs ref sequence
+                            output_txt.write(
+                                str(percentage_basescovered[
+                                        element]) + "\t")  # outputs coverage percentage
+                            output_txt.write(str(Mean[
+                                                     element]) + "\n")  # outputs mean mapping depth
                         # count_x += 1
 
                         trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
@@ -493,8 +510,9 @@ def main():
                 except NameError:
                     depth_file = None
 
-    ### Graphical outputs ###
-    bar_plot(trace_list, float(args.cutoff_number), master_keys, args.output_name)
+    # Graphical outputs #
+    bar_plot(trace_list, float(args.cutoff_number), master_keys,
+             args.output_name)
     output_txt.close()
 
 
