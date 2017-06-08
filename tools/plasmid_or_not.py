@@ -57,8 +57,20 @@ def mapper(idx_file,read,threads,main_file, output_name, unmapped):
 	sam_file = os.path.basename(read).split(".")[0] +"_"+ output_name + ".sam"
 	bam_file = sam_file[:-3]+'bam'
 	## Runs the three commands necessary to have only unmapped reads
-	btc ='bowtie2 -x '+idx_file+' -U '+read+' -p ' +threads+ ' -5 15 -S '+ sam_file
-	print "1) " + btc
+	btc = [
+		'bowtie2',
+		'-x',
+		idx_file,
+		'-U',
+		read,
+		'-p',
+		threads,
+		'-5',
+		'15',
+		'-S',
+		sam_file
+	]
+	print "1) " + " ".join(btc)
 	proc1=Popen(btc, stdout = PIPE, stderr = PIPE, shell=True)
 	proc1.wait()
 	err= proc1.communicate()
@@ -66,30 +78,59 @@ def mapper(idx_file,read,threads,main_file, output_name, unmapped):
 	regex_match=re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate',err)
 	alignment_rate=regex_match.group(0).split('%')[0]
 	if alignment_rate>0.00:
-		sf = "samtools faidx "+main_file
-		print "2) "+sf
-		proc2=Popen(sf, stdout = PIPE, stderr = PIPE, shell=True)
+		sf = ["samtools", "faidx", main_file]
+		print "2) " + " ".join(sf)
+		proc2=Popen(sf, stdout = PIPE, stderr = PIPE)
 		proc2.wait()
 		out,err= proc2.communicate()
 		print err
 		if unmapped:
-			sv = 'samtools view -b -f 4 ' + sam_file + ' > '+bam_file 		## all reads but the ones in the database provided
+			sv = [
+				'samtools',
+				'view',
+				'-b',
+				'-f',
+				'4',
+				sam_file,
+				'>',
+				bam_file
+			 ]
+			## all reads but the ones in the database provided
 		else:
-			sv = 'samtools view -b -F 4 ' + sam_file + ' > '+bam_file		## all reads mapped against the database provided
-		print "3) "+sv
-		proc3=Popen(sv, stdout = PIPE, stderr = PIPE, shell=True)
+			sv = ['samtools',
+				  'view',
+				  '-b',
+				  '-F',
+				  '4',
+				  sam_file,
+				  '>',
+				  bam_file
+				  ]
+			## all reads mapped against the database provided
+		print "3) " + " ".join(sv)
+		proc3=Popen(sv, stdout = PIPE, stderr = PIPE)
 		proc3.wait()
-		out,err= proc3.communicate()
-		print err
+		#out,err= proc3.communicate()
+		#print err
 
 		## convert file to fasta format
 
-		sbf = "samtools bam2fq " + bam_file+" | seqtk seq -A > "+sam_file[:-3] + "fas"
-		proc4 = Popen(sbf, stdout = PIPE, stderr = PIPE, shell=True)
+		sbf = [
+			"samtools",
+			"bam2fq",
+			bam_file,
+			"|",
+			"seqtk",
+			"seq2",
+			"-A",
+			">",
+			sam_file[:-3] + "fas"
+			]
+		proc4 = Popen(sbf, stdout = PIPE, stderr = PIPE)
 		proc4.wait()
-		out,err= proc4.communicate()
-		print err
-		print "Saved reads to: " + str(sam_file[:-3]) + "fas"
+		#out,err= proc4.communicate()
+		#print err
+		#print "Saved reads to: " + str(sam_file[:-3]) + "fas"
 
 
 def main():

@@ -11,7 +11,7 @@ import re
 import operator
 import plotly
 import plotly.graph_objs as go
-from subprocess import Popen, PIPE, call
+from subprocess import Popen, PIPE #, call
 from Bio import SeqIO
 from time import time
 from datetime import datetime
@@ -139,8 +139,18 @@ def createbowtieidx(filename, dirname, threads):
     if "yes" in check:
         print("Creating " + idx_file)
         # Create bowtie index
-        call('bowtie2-build -q ' + fasta_file + ' --threads ' + threads +
-             ' ' + idx_file, shell=True)  # convert to popen
+        bowtieidx_cmd = [
+            "bowtie2-build",
+            "-q",
+            fasta_file,
+            "--threads",
+            threads,
+            idx_file
+        ]
+        p = Popen(bowtieidx_cmd, stdout = PIPE, stderr = PIPE)
+        p.wait()
+        #call('bowtie2-build -q ' + fasta_file + ' --threads ' + threads +
+        #     ' ' + idx_file, shell=True)  # convert to popen
     else:
         print(idx_file + " already exists!")
 
@@ -154,10 +164,18 @@ def fastaconcatenation(dblist, output_name, plasmid_dir):
     if os.path.isfile(dirname + main_filename):
         print(output_name + ".fasta already exists. Overriding file...")
     print("Saving to: " + main_filename)
-    concat = Popen("cat " + ' '.join(dblist) + "> " + dirname +
-                   main_filename, stdout=PIPE, stderr=PIPE, shell=True)
-    stdout, stderr = concat.communicate()
-    print(stderr)
+    concat_cmd = [
+        "cat",
+        dirname,
+        main_filename
+    ]
+    concat_cmd[1:1] = dblist
+    p = Popen(concat_cmd, stdout = PIPE, stderr = PIPE)
+    p.wait()
+    #concat = Popen("cat " + ' '.join(dblist) + "> " + dirname +
+    #               main_filename, stdout=PIPE, stderr=PIPE, shell=True)
+    #stdout, stderr = concat.communicate()
+    #print(stderr)
     return main_filename
 
 
@@ -299,40 +317,84 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
 
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
     if pair == True and "_pair" in reads_file[0]:
-        btc = 'bowtie2 -x ' + idx_file + ' -1 ' + reads_file[0] + ' -2 ' + \
-              reads_file[1] + ' -p ' + threads + ' -k ' + max_k + ' -5 15 -S ' + \
-              sam_file
+        btc = ['bowtie2', '-x', idx_file, '-1', reads_file[0], '-2',
+              reads_file[1], '-p', threads, '-k', max_k, '5', '15', '-S',
+              sam_file]
     else:
-        btc = 'bowtie2 -x ' + idx_file + ' -U ' + reads_file + ' -p ' + \
-              threads + ' -k ' + max_k + ' -5 15 -S ' + sam_file
+        btc = ['bowtie2', '-x', idx_file, '-U', reads_file, '-p',
+              threads, '-k', max_k, '-5', '15', '-S', sam_file]
     print("1) " + btc)
-    proc1 = Popen(btc, stdout=PIPE, stderr=PIPE, shell=True)
-    out, err = proc1.communicate()
-    print(err)
+    proc1 = Popen(btc, stdout = PIPE, stderr = PIPE)
+    proc1.wait()
+    #proc1 = Popen(btc, stdout=PIPE, stderr=PIPE, shell=True)
+    #out, err = proc1.communicate()
     regex_match = re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate', err)
     alignment_rate = regex_match.group(0).split('%')[0]
     if alignment_rate > 0:
         print('2) ' + 'samtools faidx ' + maindb_path)
-        call('samtools faidx ' + maindb_path, shell=True)
+        proc2 = Popen = (['samtools', 'faidx', maindb_path],
+                         stdout = PIPE,
+                        stderr = PIPE)
+        proc2.wait()
+        #call('samtools faidx ' + maindb_path, shell=True)
         bam_file = sam_file[:-3] + 'bam'
         print('3) ' + 'samtools view -b -S -t ' + maindb_path + '.fai' +
               ' -@ ' + threads + ' -o ' + bam_file + ' ' + sam_file)
-        call('samtools view -b -S -t ' + maindb_path + '.fai' +
-             ' -@ ' + threads + ' -o ' + bam_file + ' ' + sam_file,
-             shell=True)
+        samtools_view_cmd = [
+            'samtools',
+            'view',
+            '-b',
+            '-S',
+            '-t',
+            maindb_path + '.fai',
+            '-@',
+            threads,
+            '-o',
+            bam_file,
+            sam_file
+        ]
+        proc3 = Popen(samtools_view_cmd, stdout = PIPE, stderr = PIPE)
+        proc3.wait()
+        #call('samtools view -b -S -t ' + maindb_path + '.fai' +
+        #     ' -@ ' + threads + ' -o ' + bam_file + ' ' + sam_file,
+        #     shell=True)
         sorted_bam_file = bam_file[:-3] + 'sorted.bam'
         print("4) " + 'samtools sort' + ' -@ ' + threads + ' -o ' +
               sorted_bam_file + ' ' + bam_file)
-        call('samtools sort' + ' -@ ' + threads + ' -o ' +
-             sorted_bam_file + ' ' + bam_file, shell=True)
+        samtools_sort_cmd = [
+            'samtools',
+            'sort',
+            '-@',
+            threads,
+            '-o',
+            sorted_bam_file,
+            bam_file
+        ]
+        proc4 = Popen(samtools_sort_cmd, stdout = PIPE, stderr = PIPE)
+        proc4.wait()
+        #call('samtools sort' + ' -@ ' + threads + ' -o ' +
+        #     sorted_bam_file + ' ' + bam_file, shell=True)
         print("5)" + 'samtools index ' + sorted_bam_file)
-        call('samtools index ' + sorted_bam_file, shell=True)
+        samtools_index_cmd = [
+            'samtools',
+            'index',
+            sorted_bam_file
+        ]
+        proc5 = Popen(samtools_index_cmd, stdout = PIPE, stderr = PIPE)
+        proc5.wait()
+        #call('samtools index ' + sorted_bam_file, shell=True)
         print("6) " + 'samtools depth ' + sorted_bam_file)
         depth_file = sorted_bam_file + '_depth.txt'
         print("Creating coverage Depth File: " + depth_file)
-        proc2 = Popen('samtools depth ' + sorted_bam_file + ' > ' +
-                      depth_file, stdout=PIPE, stderr=PIPE, shell=True)
-        proc2.communicate()
+        samtools_depth_cmd = [
+            'samtools',
+            'depth',
+            sorted_bam_file,
+            '>',
+            depth_file
+        ]
+        proc6 = Popen(samtools_depth_cmd, stdout=PIPE, stderr=PIPE)
+        proc6.wait()
         return depth_file
 
 
