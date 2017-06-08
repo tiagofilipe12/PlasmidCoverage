@@ -52,7 +52,7 @@ def createbowtieidx(filename, threads):
         # Create bowtie index
         p = Popen(
             'bowtie2-build -q ' + fasta_file + ' --threads ' + threads + ' ' + idx_file,
-            stdout=PIPE, stderr=PIPE, shell=True)
+            stdout=PIPE, stderr=PIPE)
         p.wait()
     else:
         print idx_file + " already exists!"
