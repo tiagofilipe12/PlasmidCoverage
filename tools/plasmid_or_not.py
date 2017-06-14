@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-## Last update: 1/2/2017
+## Last update: 14/6/2017
 ## Author: T.F. Jesus
 ## This version runs with bowtie2 build 2.2.9, seqtk (1.2-r95-dirty) and samtools, with multithreading for bowtie2-build
 ## This script filters reads, given a plasmid database, allowing for example to separate both chromossomal reads from plasmid reads.
@@ -100,9 +100,9 @@ def mapper(idx_file, read, threads, main_file, output_name, unmapped):
                 '-b',
                 '-f',
                 '4',
-                sam_file,
-                '>',
-                bam_file
+                '-o',
+                bam_file,
+                sam_file
             ]
         ## all reads but the ones in the database provided
         else:
@@ -111,9 +111,9 @@ def mapper(idx_file, read, threads, main_file, output_name, unmapped):
                   '-b',
                   '-F',
                   '4',
+                  '-o',
+                  bam_file,
                   sam_file,
-                  '>',
-                  bam_file
                   ]
         ## all reads mapped against the database provided
         print "3) " + " ".join(sv)
@@ -133,9 +133,9 @@ def mapper(idx_file, read, threads, main_file, output_name, unmapped):
             "seq2",
             "-A",
             ">",
-            sam_file[:-3] + "fas"
+            sam_file[:-3] + "fq"
         ]
-        proc4 = Popen(sbf, stdout=PIPE, stderr=PIPE)
+        proc4 = Popen(sbf, stdout=PIPE, stderr=PIPE, shell=True)
         proc4.wait()
     # out,err= proc4.communicate()
     # print err
