@@ -9,6 +9,7 @@ import argparse
 import os
 import re
 import operator
+import shutil
 import plotly
 import plotly.graph_objs as go
 from subprocess import Popen, PIPE #, call
@@ -164,28 +165,24 @@ def fastaconcatenation(dblist, output_name, plasmid_dir):
     if os.path.isfile(dirname + main_filename):
         print(output_name + ".fasta already exists. Overriding file...")
     print("Saving to: " + main_filename)
-    #concat_cmd = [
-    #    "cat",
-    #    db_string,
-    #    ">",
-    #    dirname + main_filename
-    #]
-    #concat_cmd[1:1] = dblist
-    #print(concat_cmd)
-    #p = Popen(concat_cmd, stdout = PIPE, stderr = PIPE)
 
-    p = Popen("cat " + ' '.join(dblist) + " > " + dirname + main_filename,
-              stdout=PIPE, stderr=PIPE, shell=True)
+    python_cat(dblist, output_name)
 
-    stdout, stderr = p.communicate()
-    print(stdout, stderr)
-    p.wait()
-    #concat = Popen("cat " + ' '.join(dblist) + "> " + dirname +
-    #               main_filename, stdout=PIPE, stderr=PIPE, shell=True)
-    #stdout, stderr = concat.communicate()
-    #print(stderr)
+    #p = Popen("cat " + ' '.join(dblist) + " > " + dirname + main_filename,
+      #        stdout=PIPE, stderr=PIPE, shell=True)
+
+    #stdout, stderr = p.communicate()
+    #print(stdout, stderr)
+    #p.wait()
+
     return main_filename
 
+def python_cat(dblist, output_name):
+    destination = open(output_name, 'wb') #write and binary
+    for db in dblist:
+        shutil.copyfileobj(open(db, 'rb'), destination)
+    destination.close()
+    #doesn't need to return... just create the file
 
 # function to delete temporary fasta files
 def deltemp(directory):
@@ -331,7 +328,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
     else:
         btc = ['bowtie2', '-x', idx_file, '-U', reads_file, '-p',
               threads, '-k', max_k, '-5', '15', '-S', sam_file]
-    print("1) " + btc)
+    print("1) " + " ".join(btc))
     proc1 = Popen(btc, stdout = PIPE, stderr = PIPE)
     proc1.wait()
     #proc1 = Popen(btc, stdout=PIPE, stderr=PIPE, shell=True)
@@ -401,7 +398,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
             '>',
             depth_file
         ]
-        proc6 = Popen(samtools_depth_cmd, stdout=PIPE, stderr=PIPE)
+        proc6 = Popen(samtools_depth_cmd, stdout=PIPE, stderr=PIPE, shell=True)
         proc6.wait()
         return depth_file
 
