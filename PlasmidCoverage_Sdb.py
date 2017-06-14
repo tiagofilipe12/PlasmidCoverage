@@ -256,7 +256,7 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
                 pct += 1
                 print("Plasmid (.gb) file found: " + filename)
                 print("\n")
-                "#:" + str(pct)
+                print("#:" + str(pct))
                 gbfile = os.path.join(dirname, filename)
                 folderexist(os.path.join(dirname + "fasta"))
                 fasta_file = os.path.join(dirname, 'fasta',
