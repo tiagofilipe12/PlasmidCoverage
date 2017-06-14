@@ -122,7 +122,6 @@ def extractfastaplasmids(gbkfile, fastafile, plasmid_length):
 
 
 def createbowtieidx(filename, dirname, threads):
-    check = ""
     if not os.path.exists(os.path.join(dirname + "bowtie2idx")):
         os.makedirs(os.path.join(dirname + "bowtie2idx"))
     else:
