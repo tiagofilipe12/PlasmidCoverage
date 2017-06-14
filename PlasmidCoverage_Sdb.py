@@ -334,9 +334,10 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
     regex_match = re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate', err)
     try:
         alignment_rate = regex_match.group(0).split('%')[0]
-    except:
+    except AttributeError:
         print(err)
-        print('\nbowtie2-build found matching file types and escaped building '
+        print('\nWARNING: bowtie2-build found matching file types and escaped '
+              'building '
               'new index, however the specified file name does not match '
               'bowtie index. Try renaming the output "-o" option to match '
               'that of the bowtie2 idx files.\n')
