@@ -124,17 +124,19 @@ def mapper(idx_file, read, threads, main_file, output_name, unmapped):
 
         ## convert file to fasta format
 
-        sbf = [
-            "samtools",
-            "bam2fq",
-            bam_file,
-            "|",
-            "seqtk",
-            "seq2",
-            "-A",
-            ">",
-            sam_file[:-3] + "fq"
-        ]
+        #sbf = [
+        #    "samtools",
+        #    "bam2fq",
+        #    bam_file,
+        #    "|",
+        #    "seqtk",
+        #    "seq2",
+        #    "-A",
+        #    ">",
+        #    sam_file[:-3] + "fas"
+        #]
+        sbf = 'samtools bam2fq {} | seqtk seq2 -A > {}.fas'.format(
+            bam_file, sam_file[:-3])
         proc4 = Popen(sbf, stdout=PIPE, stderr=PIPE, shell=True)
         proc4.wait()
     # out,err= proc4.communicate()

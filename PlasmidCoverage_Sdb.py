@@ -136,24 +136,22 @@ def createbowtieidx(filename, dirname, threads):
                      idx_file + ".rev.2.bt2", idx_file + ".rev.1.bt2"]
     for idx in list_idxfiles:
         if not os.path.isfile(idx):
-            check = "yes"
-    if "yes" in check:
-        print("Creating " + idx_file)
-        # Create bowtie index
-        bowtieidx_cmd = [
-            "bowtie2-build",
-            "-q",
-            fasta_file,
-            "--threads",
-            threads,
-            idx_file
-        ]
-        p = Popen(bowtieidx_cmd, stdout = PIPE, stderr = PIPE)
-        p.wait()
-        #call('bowtie2-build -q ' + fasta_file + ' --threads ' + threads +
-        #     ' ' + idx_file, shell=True)  # convert to popen
-    else:
-        print(idx_file + " already exists!")
+            print("Creating " + idx_file)
+            # Create bowtie index
+            bowtieidx_cmd = [
+                "bowtie2-build",
+                "-q",
+                fasta_file,
+                "--threads",
+                threads,
+                idx_file
+            ]
+            p = Popen(bowtieidx_cmd, stdout = PIPE, stderr = PIPE)
+            p.wait()
+            #call('bowtie2-build -q ' + fasta_file + ' --threads ' + threads +
+            #     ' ' + idx_file, shell=True)  # convert to popen
+        else:
+            print(idx_file + " already exists!")
 
     return idx_file
 
@@ -215,7 +213,7 @@ def depthfilereader(depth_file, plasmid_length):
     depth_dic_coverage = {}
     for line in depth_info:
         tab_split = line.split("\t")
-        reference = "_".join(tab_split[0].strip().split("_")[0:2])  # stores
+        reference = "_".join(tab_split[0].strip().split("_")[0:3])  # stores
         # only the gi for the reference
         position = tab_split[1]
         numreadsalign = float(tab_split[2].rstrip("\n"))
@@ -323,7 +321,7 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
     if pair == True and "_pair" in reads_file[0]:
         btc = ['bowtie2', '-x', idx_file, '-1', reads_file[0], '-2',
-              reads_file[1], '-p', threads, '-k', max_k, '5', '15', '-S',
+              reads_file[1], '-p', threads, '-k', max_k, '-5', '15', '-S',
               sam_file]
     else:
         btc = ['bowtie2', '-x', idx_file, '-U', reads_file, '-p',
@@ -391,13 +389,15 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
         print("6) " + 'samtools depth ' + sorted_bam_file)
         depth_file = sorted_bam_file + '_depth.txt'
         print("Creating coverage Depth File: " + depth_file)
-        samtools_depth_cmd = [
-            'samtools',
-            'depth',
-            sorted_bam_file,
-            '>',
-            depth_file
-        ]
+        #samtools_depth_cmd = [
+        #    'samtools',
+        #    'depth',
+        #    sorted_bam_file,
+        #    '>',
+        #    depth_file
+        #]
+        samtools_depth_cmd = 'samtools depth {} > {}'.format(sorted_bam_file,
+                                                             depth_file)
         proc6 = Popen(samtools_depth_cmd, stdout=PIPE, stderr=PIPE, shell=True)
         proc6.wait()
         return depth_file
