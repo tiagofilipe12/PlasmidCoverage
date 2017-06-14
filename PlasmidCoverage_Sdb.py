@@ -55,8 +55,8 @@ def fastadict(fasta_file):
             line = line.splitlines()[0]
         if x == 0 and line.startswith(">"):
             sequence_list = []
-            plasmidname = "_".join(line[1:].split("|")[0:2])  # stores only the
-            #  gi for the reference
+            plasmidname = line[1:].split("|")[3]  # stores only the
+            #  acc for the reference
             for char in plasmidname:
                 if char in problematic_characters:
                     plasmidname = plasmidname.replace(char, '_')
@@ -70,7 +70,7 @@ def fastadict(fasta_file):
                 plasmidname] = sequence_list  # appends last sequence to be
             # parsed before new structure for sequence
             sequence_list = []
-            plasmidname = "_".join(line[1:].split("|")[0:2])
+            plasmidname = line[1:].split("|")[3]
             for char in plasmidname:
                 if char in problematic_characters:
                     plasmidname = plasmidname.replace(char, '_')  # stores only
@@ -89,7 +89,7 @@ def sequencelengthfromfasta(fasta_file, plasmid_length, fasta_path):
     fasta_dic = fastadict(fasta_file)
     out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
     for key in fasta_dic:
-        key = "_".join(key.split("_")[0:2])  # stores only the gi for the
+        key = "_".join(key.split("_")[0:3])  # stores only the acc for the
         # reference
         plasmid_length[key] = sum(len(s) for s in fasta_dic[key])
         out_handle.write('>' + key + '\n' + ''.join(fasta_dic[key]) + '\n')
@@ -164,13 +164,21 @@ def fastaconcatenation(dblist, output_name, plasmid_dir):
     if os.path.isfile(dirname + main_filename):
         print(output_name + ".fasta already exists. Overriding file...")
     print("Saving to: " + main_filename)
-    concat_cmd = [
-        "cat",
-        dirname,
-        main_filename
-    ]
-    concat_cmd[1:1] = dblist
-    p = Popen(concat_cmd, stdout = PIPE, stderr = PIPE)
+    #concat_cmd = [
+    #    "cat",
+    #    db_string,
+    #    ">",
+    #    dirname + main_filename
+    #]
+    #concat_cmd[1:1] = dblist
+    #print(concat_cmd)
+    #p = Popen(concat_cmd, stdout = PIPE, stderr = PIPE)
+
+    p = Popen("cat " + ' '.join(dblist) + " > " + dirname + main_filename,
+              stdout=PIPE, stderr=PIPE, shell=True)
+
+    stdout, stderr = p.communicate()
+    print(stdout, stderr)
     p.wait()
     #concat = Popen("cat " + ' '.join(dblist) + "> " + dirname +
     #               main_filename, stdout=PIPE, stderr=PIPE, shell=True)
