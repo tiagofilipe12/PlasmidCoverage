@@ -56,7 +56,7 @@ def fastadict(fasta_file):
             line = line.splitlines()[0]
         if x == 0 and line.startswith(">"):
             sequence_list = []
-            plasmidname = line[1:].split("|")[3]  # stores only the
+            plasmidname = line[1:].split("|")[1]  # stores only the
             #  acc for the reference
             for char in plasmidname:
                 if char in problematic_characters:
@@ -67,11 +67,10 @@ def fastadict(fasta_file):
             print(fasta_file + " will be ignored")
             break
         elif x >= 1 and line.startswith(">"):
-            fasta_dic[
-                plasmidname] = sequence_list  # appends last sequence to be
+            fasta_dic[plasmidname] = sequence_list  # appends last sequence to be
             # parsed before new structure for sequence
             sequence_list = []
-            plasmidname = line[1:].split("|")[3]
+            plasmidname = line[1:].split("|")[1]
             for char in plasmidname:
                 if char in problematic_characters:
                     plasmidname = plasmidname.replace(char, '_')  # stores only
