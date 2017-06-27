@@ -209,6 +209,7 @@ def deltemp(directory):
 #	return sam_dict
 
 def depthfilereader(depth_file, plasmid_length):
+    print(depth_file)
     depth_info = open(depth_file, "r")
     depth_dic_coverage = {}
     for line in depth_info:
@@ -319,7 +320,7 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
 
 
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
-    if pair == True and "_pair" in reads_file[0]:
+    if pair == True:
         btc = ['bowtie2', '-x', idx_file, '-1', reads_file[0], '-2',
               reads_file[1], '-p', threads, '-k', max_k, '-5', '15', '-S',
               sam_file]
@@ -492,7 +493,8 @@ def main():
             for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,
                                                                         subdirname)):
                 for filename in filenames2:
-                    if filename.find('fastq') != -1:
+                    if filename.find('fastq') != -1 or filename.find('fq') !=\
+                            -1:
                         fn = filename.split('.')[0]
                         strain_list.append(fn)
                         print("\n")
@@ -509,11 +511,11 @@ def main():
                         reads_file = os.path.join(dirname2, filename)
                         threads = args.threads
                         max_k = alignmaxnumber(args.max_align, count_entries)
-                        if "_pair" in reads_file and args.paired \
+                        if args.paired \
                                 and file_reset != True:
                             reads_list = [reads_file]
                             file_reset = True
-                        elif "_pair" in reads_file and args.paired \
+                        elif args.paired \
                                 and file_reset == True:
                             reads_list.append(reads_file)
                             depth_file = mapper(args.paired, idx_file,
