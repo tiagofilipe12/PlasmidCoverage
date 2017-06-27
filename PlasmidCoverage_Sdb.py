@@ -157,12 +157,14 @@ def createbowtieidx(filename, dirname, threads):
 def fastaconcatenation(dblist, output_name, plasmid_dir):
     print(dblist)
     main_filename = output_name + ".fasta"
+    print(main_filename)
     dirname = os.path.join(plasmid_dir, "fasta", "")
+    print(dirname)
     if os.path.isfile(dirname + main_filename):
         print(output_name + ".fasta already exists. Overriding file...")
     print("Saving to: " + main_filename)
 
-    python_cat(dblist, output_name)
+    python_cat(dblist, dirname + main_filename)
 
     #p = Popen("cat " + ' '.join(dblist) + " > " + dirname + main_filename,
       #        stdout=PIPE, stderr=PIPE, shell=True)
