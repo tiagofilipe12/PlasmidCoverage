@@ -319,14 +319,15 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
     return main_db, count_entries
 
 
-def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path):
+def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
+           trim5):
     if pair == True:
         btc = ['bowtie2', '-x', idx_file, '-1', reads_file[0], '-2',
-              reads_file[1], '-p', threads, '-k', max_k, '-5', '15', '-S',
+              reads_file[1], '-p', threads, '-k', max_k, '-5', trim5, '-S',
               sam_file]
     else:
         btc = ['bowtie2', '-x', idx_file, '-U', reads_file, '-p',
-              threads, '-k', max_k, '-5', '15', '-S', sam_file]
+              threads, '-k', max_k, '-5', trim5, '-S', sam_file]
     print("1) " + " ".join(btc))
     proc1 = Popen(btc, stdout = PIPE, stderr = PIPE)
     proc1.wait()
@@ -438,6 +439,9 @@ def main():
                              "the number of fastas in reference directory (e.g. "
                              "if you have 3 reference sequences the number of "
                              "max_align allowed will automatically be set to 3.")
+    parser.add_argument('-5', "--trim5", dest="trim5", default="0",
+                        help="bowtie2 option: Trim <int> bases from 5' (left)"
+                             "end of each read before alignment (default: 0).")
     parser.add_argument('-o', '--output', dest='output_name',
                         default="plasmid_db_out",
                         help='Specify the output name you wish. No need for '
@@ -520,13 +524,15 @@ def main():
                             reads_list.append(reads_file)
                             depth_file = mapper(args.paired, idx_file,
                                                 reads_list, threads, max_k,
-                                                sam_file, maindb_path)
+                                                sam_file, maindb_path,
+                                                args.trim5)
                             reads_list = []
                             file_reset = False
                         else:
                             depth_file = mapper(args.paired, idx_file,
                                                 reads_file, threads, max_k,
-                                                sam_file, maindb_path)
+                                                sam_file, maindb_path,
+                                                args.trim5)
 
                 # Compute descritptive statistics and prints to tabular txt file
                 try:
