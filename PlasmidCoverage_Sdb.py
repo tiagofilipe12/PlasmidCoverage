@@ -12,18 +12,17 @@ import operator
 import shutil
 import plotly
 import plotly.graph_objs as go
-from subprocess import Popen, PIPE #, call
+from subprocess import Popen, PIPE
 from Bio import SeqIO
 from time import time
 from datetime import datetime
 import json
 
-
-# TODO:
-# 1) Set a minnimun read threshold to avoid computation on less than x reads
-# mapped (depth_file?)
-# 4) delete unsorted BAM files
-# 5) Create directory structure to store all comparisons.
+def search_substing(string):
+    plasmid_search = re.search('plasmid(.+?)__', string)
+    if plasmid_search:
+        plasmid_name = plasmid_search.group(1).replace("_", "")
+        return plasmid_name
 
 def alignmaxnumber(max_align, count_entries):
     if max_align:
@@ -43,7 +42,6 @@ def folderexist(directory):
     else:
         print(os.path.join(directory) + " exists!")
 
-
 def fastadict(fasta_file):
     if_handle = open(fasta_file, 'r')
     x = 0
@@ -56,34 +54,37 @@ def fastadict(fasta_file):
             line = line.splitlines()[0]
         if x == 0 and line.startswith(">"):
             sequence_list = []
-            plasmidname = line[1:].split("|")[1]  # stores only the
+            plasmidname = line.replace(">", "")  # stores only the
             #  acc for the reference
             for char in plasmidname:
                 if char in problematic_characters:
-                    plasmidname = plasmidname.replace(char, '_')
+                    plasmidname = plasmidname.replace(char, "_")
             x += 1
         elif x == 0 and not line.startswith(">"):
             print("Is this a fasta file? " + fasta_file)
             print(fasta_file + " will be ignored")
             break
         elif x >= 1 and line.startswith(">"):
-            fasta_dic[plasmidname] = sequence_list  # appends last sequence to be
+            fasta_dic["_".join(plasmidname.split("_")[0:3])] = sequence_list  #
+            # appends
+            # last
+            # sequence
+            # to be
             # parsed before new structure for sequence
             sequence_list = []
-            plasmidname = line[1:].split("|")[1]
+            plasmidname = line.replace(">", "")  # stores only the
             for char in plasmidname:
                 if char in problematic_characters:
-                    plasmidname = plasmidname.replace(char, '_')  # stores only
+                    plasmidname = plasmidname.replace(char, "_")  # stores only
                     #  the gi for the reference
             x += 1
         else:
             sequence_list.append(line)
     if sequence_list:
-        fasta_dic[plasmidname] = sequence_list  # appends last sequence on the
+        fasta_dic["_".join(plasmidname.split("_")[0:3])] = sequence_list  # appends last sequence on the
         # fasta
     if_handle.close()
     return fasta_dic
-
 
 def sequencelengthfromfasta(fasta_file, plasmid_length, fasta_path):
     fasta_dic = fastadict(fasta_file)
@@ -95,7 +96,6 @@ def sequencelengthfromfasta(fasta_file, plasmid_length, fasta_path):
         out_handle.write('>' + key + '\n' + ''.join(fasta_dic[key]) + '\n')
     out_handle.close()
     return plasmid_length, len(fasta_dic.keys())
-
 
 def extractfastaplasmids(gbkfile, fastafile, plasmid_length):
     if_handle = open(gbkfile, 'r')
@@ -118,7 +118,6 @@ def extractfastaplasmids(gbkfile, fastafile, plasmid_length):
     print(plasmid_length.values(), " values each gb file")
     print(" Wrote fasta file: " + fastafile)
     return plasmid_length
-
 
 def createbowtieidx(filename, dirname, threads):
     if not os.path.exists(os.path.join(dirname + "bowtie2idx")):
@@ -153,13 +152,12 @@ def createbowtieidx(filename, dirname, threads):
 
     return idx_file
 
-
 def fastaconcatenation(dblist, output_name, plasmid_dir):
-    print(dblist)
+    #print(dblist)
     main_filename = output_name + ".fasta"
-    print(main_filename)
+    #print(main_filename)
     dirname = os.path.join(plasmid_dir, "fasta", "")
-    print(dirname)
+    #print(dirname)
     if os.path.isfile(dirname + main_filename):
         print(output_name + ".fasta already exists. Overriding file...")
     print("Saving to: " + main_filename)
@@ -190,45 +188,29 @@ def deltemp(directory):
         if f.endswith('.temp'):
             os.remove(os.path.join(directory, f))
 
-
-# Creates an alignment for each .sam file (per reads file) and outputs a
-# dictionary with keys = reads and values =
-# Still not implemented
-# def SamDictMultipleHits(samfile):
-#	input_sam = open(samfile,"r+")
-#	for line in input_sam:
-#		if not line.startswith("@"):
-#			tab_split = line.split("\t")
-#			Read = tab_split[0]
-#			Flag = tab_split[1]
-#			Ref = tab_split[2]
-#			Leftmost_pos = tab_split[3]
-#			Seq_lenght = tab_split[9]
-#			if Ref != "*":
-#				sam_dict[Read]= [Flag, Ref, Leftmost_pos, Seq_lenght]
-#	return sam_dict
-
 def depthfilereader(depth_file, plasmid_length):
-    print(depth_file)
+    metadata = {}
     depth_info = open(depth_file, "r")
     depth_dic_coverage = {}
     for line in depth_info:
         tab_split = line.split("\t")
-        reference = "_".join(tab_split[0].strip().split("_")[0:3])  # stores
+        reference = "_".join(tab_split[0].strip().split("_")[0:3])  # store
+        species = "_".join(tab_split[0].strip().split("_")[3:5])
+        plasmid_name = search_substing(line)
         # only the gi for the reference
         position = tab_split[1]
         numreadsalign = float(tab_split[2].rstrip("\n"))
         if reference not in depth_dic_coverage:
             depth_dic_coverage[reference] = {}
         depth_dic_coverage[reference][position] = numreadsalign
-    percentage_basescovered, Mean = {}, {}
+        metadata[reference] = [species, plasmid_name, plasmid_length[reference]]
+    percentage_basescovered, mean = {}, {}
     for ref in depth_dic_coverage:
         percentage_basescovered[ref] = float(len(depth_dic_coverage[ref])) / \
                                        float(plasmid_length[ref])
-        Mean[ref] = sum(depth_dic_coverage[ref].values()) / \
+        mean[ref] = sum(depth_dic_coverage[ref].values()) / \
                     len(depth_dic_coverage[ref])
-    return percentage_basescovered, Mean
-
+    return percentage_basescovered, mean, metadata
 
 def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
     trace_line = go.Scatter(x=number_plasmid, y=[cutoff] * len(number_plasmid),
@@ -242,7 +224,6 @@ def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
     fig = go.Figure(data=trace_list, layout=layout)
     plotly.offline.plot(fig, filename=plasmid_db_out + '.html',
                                    auto_open=False)
-
 
 # PLASMIDS #
 def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
@@ -317,7 +298,6 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
     # the entire db#
     main_db = fastaconcatenation(dblist, output_name, plasmids_path)
     return main_db, count_entries
-
 
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
            trim5):
@@ -411,7 +391,6 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
         proc6 = Popen(samtools_depth_cmd, stdout=PIPE, stderr=PIPE, shell=True)
         proc6.wait()
         return depth_file
-
 
 def main():
     parser = argparse.ArgumentParser(
@@ -534,19 +513,15 @@ def main():
                                                 sam_file, maindb_path,
                                                 args.trim5)
 
-                # Compute descritptive statistics and prints to tabular txt file
+                # Compute descriptive statistics and prints to tabular txt file
                 try:
-                    percentage_basescovered, Mean = depthfilereader(depth_file,
-                        plasmid_length)
+                    percentage_basescovered, mean, metadata = depthfilereader(
+                        depth_file, plasmid_length)
                     sorted_perccoverage_dic = sorted(
                         percentage_basescovered.items(),
                         key=operator.itemgetter(1),
                         reverse=True)
-
-                    tmp_list_k = []
-                    tmp_list_v = []
-                    list_all_k = []
-                    list_all_v = []
+                    tmp_list_k, list_all_k, list_all_v = [], [], []
                     if 0 <= float(args.cutoff_number) <= 1:
                         # outputs a json file per input file
                         output_json = open(args.output_name + fn + ".json",
@@ -562,17 +537,21 @@ def main():
                         for k, v in sorted_perccoverage_dic:
                             if v >= float(args.cutoff_number):
                                 tmp_list_k.append(k)
-                                tmp_list_v.append(v)
+                                #tmp_list_v.append(v)
                                 json_dict[k] = v
                             if k not in master_keys:
                                 master_keys.append(k)
                             list_all_v.append(v)
                             list_all_k.append(k)
+
                         # COVERAGE PERCENTAGE #
                         output_txt.write(
                             "Read name: " + fn + "\nreference Sequence\t"
                                                  "Coverage Percentage\t"
-                                                 "Mean mapping depth\n")
+                                                 "Mean mapping depth\t"
+                                                 "Sequence length\t"
+                                                 "Species name\t"
+                                                 "Plasmid name\n")
                         # count_x=0
                         for element in tmp_list_k:
                             output_txt.write(
@@ -580,24 +559,28 @@ def main():
                             output_txt.write(
                                 str(percentage_basescovered[
                                         element]) + "\t")  # outputs coverage percentage
-                            output_txt.write(str(Mean[
-                                                     element]) + "\n")  # outputs mean mapping depth
-                        # count_x += 1
+                            output_txt.write(str(mean[element]) + "\t")
+                            # outputs mean mapping depth
+                            output_txt.write("{}\t{}\t{}\n".format(str(metadata[
+                                element][2]), " ".join(str(metadata[element][
+                                    0]).split("_")),
+                                str(metadata[element][1])))
 
+                        # count_x += 1
                         trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
                         trace_list.append(trace)
                     output_txt.write("\n")
-                    print(json_dict)
                     output_json.write(json.dumps(json_dict))
                     output_json.close()
                 except NameError:
                     depth_file = None
+                    print("error: samtools depth file not correct -> ",
+                          depth_file)
 
     # Graphical outputs #
     bar_plot(trace_list, float(args.cutoff_number), master_keys,
              args.output_name)
     output_txt.close()
-
 
 if __name__ == "__main__":
     main()
