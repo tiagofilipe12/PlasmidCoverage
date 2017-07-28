@@ -5,15 +5,21 @@
 
 For now, this developing branch of this repo provide two versions of the same script:
 
-* Version *PlasmidCoverage.py* maps against only one plasmid sequence. This option is deprecated however you can still use it. Just make sure you install prettytable - `pip install prettytable`
 
-* Version *PlasmidCoverage_Sdb.py* allows users to compile multiple fastas into one or having one multi-fasta file to calculate plasmid coverage. 
+* `PlasmidCoverage_Sdb.py` allows users to compile multiple fastas into one or having one multi-fasta file to calculate plasmid coverage. 
+
+* `./deprecated/PlasmidCoverage.py` maps against only one plasmid 
+sequence. This 
+option is deprecated however you can still use it. Just make sure you install prettytable - `pip install prettytable`
+
 
 In both versions, .gb files are also supported. These files will be converted into fasta files in a subdirectory named "fasta" within the directory the user specifies for plasmid.
 
 ## Dependencies
 * plotly - ```pip install plotly```
+* termcolor
 * bowtie2 (tested for version 2.2.9)
+* samtools (tested for version 1.3.1)
 
 You can now simply: ```pip install -r requirements.txt```
 
@@ -41,7 +47,7 @@ You should provide the path to the directory containing the directories with the
 
 ---
 
-#### - Acessory tools
+#### - Accessory tools
 
 **plasmid_or_not.py**
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-# Last update: 14/6/2017
+# Last update: 28/7/2017
 # Author: T.F. Jesus
 # This version runs with bowtie2 build 2.2.9, with multithreading for
 # bowtie2-build
@@ -17,6 +17,7 @@ from Bio import SeqIO
 from time import time
 from datetime import datetime
 import json
+from termcolor import colored, cprint
 
 def search_substing(string):
     plasmid_search = re.search('plasmid(.+?)__', string)
@@ -196,6 +197,7 @@ def depthfilereader(depth_file, plasmid_length):
         tab_split = line.split("\t")
         reference = "_".join(tab_split[0].strip().split("_")[0:3])  # store
         species = "_".join(tab_split[0].strip().split("_")[3:5])
+        print species
         plasmid_name = search_substing(line)
         # only the gi for the reference
         position = tab_split[1]
@@ -229,7 +231,7 @@ def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
 def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
     count_entries = 0
     print("===================================================================")
-    print("Processing Plasmids in " + plasmids_path)
+    cprint("Processing Plasmids in " + plasmids_path, 'green', attrs=['bold'])
     pct = 0
     for dirname, dirnames, filenames in os.walk(plasmids_path, topdown=True):
         dirnames[:] = [d for d in dirnames if d not in ["bowtie2idx", "fasta"]]
@@ -301,6 +303,7 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
 
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
            trim5):
+    cprint('\n=== Running bowtie2 ===\n', 'green', attrs=['bold'])
     if pair == True:
         btc = ['bowtie2', '-x', idx_file, '-1', reads_file[0], '-2',
               reads_file[1], '-p', threads, '-k', max_k, '-5', trim5, '-S',
@@ -324,6 +327,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
               'bowtie index. Try renaming the output "-o" option to match '
               'that of the bowtie2 idx files.\n')
     if alignment_rate > 0:
+        cprint('\n=== Running samtools ===\n', 'green', attrs=['bold'])
         print('2) ' + 'samtools faidx ' + maindb_path)
         proc2 = Popen(['samtools', 'faidx', maindb_path],
                          stdout = PIPE,
@@ -352,7 +356,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
         #     ' -@ ' + threads + ' -o ' + bam_file + ' ' + sam_file,
         #     shell=True)
         sorted_bam_file = bam_file[:-3] + 'sorted.bam'
-        print("4) " + 'samtools sort' + ' -@ ' + threads + ' -o ' +
+        print('4) ' + 'samtools sort' + ' -@ ' + threads + ' -o ' +
               sorted_bam_file + ' ' + bam_file)
         samtools_sort_cmd = [
             'samtools',
@@ -367,7 +371,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
         proc4.wait()
         #call('samtools sort' + ' -@ ' + threads + ' -o ' +
         #     sorted_bam_file + ' ' + bam_file, shell=True)
-        print("5)" + 'samtools index ' + sorted_bam_file)
+        print('5) ' + 'samtools index ' + sorted_bam_file)
         samtools_index_cmd = [
             'samtools',
             'index',
@@ -376,7 +380,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
         proc5 = Popen(samtools_index_cmd, stdout = PIPE, stderr = PIPE)
         proc5.wait()
         #call('samtools index ' + sorted_bam_file, shell=True)
-        print("6) " + 'samtools depth ' + sorted_bam_file)
+        print('6) ' + 'samtools depth ' + sorted_bam_file)
         depth_file = sorted_bam_file + '_depth.txt'
         print("Creating coverage Depth File: " + depth_file)
         #samtools_depth_cmd = [
@@ -530,7 +534,7 @@ def main():
 
                         if counter == 0:
                             output_txt.write(
-                                "NOTE: outputed results for plasmids with "
+                                "NOTE: outputted results for plasmids with "
                                 "more than " + args.cutoff_number + " mapping"
                                                                     " coverage.\n\n")
                             counter = 1
@@ -546,8 +550,8 @@ def main():
 
                         # COVERAGE PERCENTAGE #
                         output_txt.write(
-                            "Read name: " + fn + "\nreference Sequence\t"
-                                                 "Coverage Percentage\t"
+                            "Read name: " + fn + "\nReference sequence\t"
+                                                 "Coverage percentage\t"
                                                  "Mean mapping depth\t"
                                                  "Sequence length\t"
                                                  "Species name\t"
