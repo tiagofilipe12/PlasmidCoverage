@@ -17,7 +17,7 @@ from Bio import SeqIO
 from time import time
 from datetime import datetime
 import json
-from termcolor import colored, cprint
+from termcolor import cprint
 
 def search_substing(string):
     plasmid_search = re.search('plasmid(.+?)__', string)
@@ -66,7 +66,7 @@ def fastadict(fasta_file):
             print(fasta_file + " will be ignored")
             break
         elif x >= 1 and line.startswith(">"):
-            fasta_dic["_".join(plasmidname.split("_")[0:3])] = sequence_list  #
+            fasta_dic[plasmidname] = sequence_list  #
             # appends
             # last
             # sequence
@@ -82,7 +82,7 @@ def fastadict(fasta_file):
         else:
             sequence_list.append(line)
     if sequence_list:
-        fasta_dic["_".join(plasmidname.split("_")[0:3])] = sequence_list  # appends last sequence on the
+        fasta_dic[plasmidname] = sequence_list  # appends last sequence on the
         # fasta
     if_handle.close()
     return fasta_dic
@@ -91,9 +91,9 @@ def sequencelengthfromfasta(fasta_file, plasmid_length, fasta_path):
     fasta_dic = fastadict(fasta_file)
     out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
     for key in fasta_dic:
-        key = "_".join(key.split("_")[0:3])  # stores only the acc for the
+        new_key = "_".join(key.split("_")[0:3])  # stores only the acc for the
         # reference
-        plasmid_length[key] = sum(len(s) for s in fasta_dic[key])
+        plasmid_length[new_key] = sum(len(s) for s in fasta_dic[key])
         out_handle.write('>' + key + '\n' + ''.join(fasta_dic[key]) + '\n')
     out_handle.close()
     return plasmid_length, len(fasta_dic.keys())
@@ -197,7 +197,6 @@ def depthfilereader(depth_file, plasmid_length):
         tab_split = line.split("\t")
         reference = "_".join(tab_split[0].strip().split("_")[0:3])  # store
         species = "_".join(tab_split[0].strip().split("_")[3:5])
-        print species
         plasmid_name = search_substing(line)
         # only the gi for the reference
         position = tab_split[1]
