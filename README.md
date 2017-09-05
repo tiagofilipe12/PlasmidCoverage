@@ -36,7 +36,10 @@ You should provide the path to the directory containing the directories with the
 
 **'-t'**, **'--threads'**, dest='threads', default="1", help="Specify the number of threads to be used by bowtie2."
 
-**'-2'**, **'--pair'**, dest='paired', action='store_true', help='Use this option if you have paired end reads. Note that you should append to the end of the fastq file "_pair1" and "_pair2" for the script to be able to recognize both pairs')
+**'-2'**, **'--pair'**, dest='paired', action='store_true', help='Use this 
+option if you have paired end reads. Paired end reads just have to be inside 
+the same folder, without any other files inside it. Structure to read files 
+should be something like: ./reads/read_folder/<with pairs inside it>.')
 
 **'-k'**, **"--max_align"**, dest="max_align", help="Specify the maximum number of alignments possible for each read. This option changes -k parameter of Bowtie2. By default this script will set -k to the number of fasta files in reference directory (e.g. if you have 3 reference sequences the number of max_align allowed will automatically be set to 3). So, if you have a single multi-fasta -k will be set to 1."
 
