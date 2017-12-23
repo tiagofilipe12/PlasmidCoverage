@@ -190,6 +190,7 @@ def deltemp(directory):
             os.remove(os.path.join(directory, f))
 
 def depthfilereader(depth_file, plasmid_length):
+    print("depth_file_reading", depth_file)
     metadata = {}
     depth_info = open(depth_file, "r")
     depth_dic_coverage = {}
