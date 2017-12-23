@@ -323,7 +323,7 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
         print("\nWARNING: bowtie2-build found matching file types and escaped "
               "building "
               "new index, however the specified file name does not match "
-              "bowtie index. Try renaming the output "-o" option to match "
+              "bowtie index. Try renaming the output '-o' option to match "
               "that of the bowtie2 idx files.\n")
     if alignment_rate > 0:
         cprint("\n=== Running samtools ===\n", "green", attrs=["bold"])
