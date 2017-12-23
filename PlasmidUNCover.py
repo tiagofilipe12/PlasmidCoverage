@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # Last update: 28/7/2017
 # Author: T.F. Jesus
