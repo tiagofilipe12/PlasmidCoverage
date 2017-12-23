@@ -315,85 +315,86 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
     proc1.wait()
     #proc1 = Popen(btc, stdout=PIPE, stderr=PIPE, shell=True)
     out, err = proc1.communicate()
-    regex_match = re.search("[\d]{1}[.]{1}[\d]{2}% overall alignment rate", err)
-    try:
-        alignment_rate = regex_match.group(0).split("%")[0]
-    except AttributeError:
-        print(err)
-        print("\nWARNING: bowtie2-build found matching file types and escaped "
-              "building "
-              "new index, however the specified file name does not match "
-              "bowtie index. Try renaming the output '-o' option to match "
-              "that of the bowtie2 idx files.\n")
-    if alignment_rate > 0:
-        cprint("\n=== Running samtools ===\n", "green", attrs=["bold"])
-        print("2) " + "samtools faidx " + maindb_path)
-        proc2 = Popen(["samtools", "faidx", maindb_path],
-                         stdout = PIPE,
-                        stderr = PIPE)
-        proc2.wait()
-        #call('samtools faidx ' + maindb_path, shell=True)
-        bam_file = sam_file[:-3] + "bam"
-        print("3) " + "samtools view -b -S -t " + maindb_path + ".fai" +
-              " -@ " + threads + " -o " + bam_file + " " + sam_file)
-        samtools_view_cmd = [
-            "samtools",
-            "view",
-            "-b",
-            "-S",
-            "-t",
-            maindb_path + ".fai",
-            "-@",
-            threads,
-            "-o",
-            bam_file,
-            sam_file
-        ]
-        proc3 = Popen(samtools_view_cmd, stdout = PIPE, stderr = PIPE)
-        proc3.wait()
-        #call('samtools view -b -S -t ' + maindb_path + '.fai' +
-        #     ' -@ ' + threads + ' -o ' + bam_file + ' ' + sam_file,
-        #     shell=True)
-        sorted_bam_file = bam_file[:-3] + "sorted.bam"
-        print("4) " + "samtools sort" + " -@ " + threads + " -o " +
-              sorted_bam_file + " " + bam_file)
-        samtools_sort_cmd = [
-            "samtools",
-            "sort",
-            "-@",
-            threads,
-            "-o",
-            sorted_bam_file,
-            bam_file
-        ]
-        proc4 = Popen(samtools_sort_cmd, stdout = PIPE, stderr = PIPE)
-        proc4.wait()
-        #call("samtools sort" + " -@ " + threads + " -o " +
-        #     sorted_bam_file + " " + bam_file, shell=True)
-        print("5) " + "samtools index " + sorted_bam_file)
-        samtools_index_cmd = [
-            "samtools",
-            "index",
-            sorted_bam_file
-        ]
-        proc5 = Popen(samtools_index_cmd, stdout = PIPE, stderr = PIPE)
-        proc5.wait()
-        #call("samtools index " + sorted_bam_file, shell=True)
-        print("6) " + "samtools depth " + sorted_bam_file)
-        depth_file = sorted_bam_file + "_depth.txt"
-        print("Creating coverage Depth File: " + depth_file)
-        #samtools_depth_cmd = [
-        #    "samtools",
-        #    "depth",
-        #    sorted_bam_file,
-        #    ">",
-        #    depth_file
-        #]
-        samtools_depth_cmd = "samtools depth {} > {}".format(sorted_bam_file,
-                                                             depth_file)
-        proc6 = Popen(samtools_depth_cmd, stdout=PIPE, stderr=PIPE, shell=True)
-        proc6.wait()
-        return depth_file
+    #regex_match = re.search("[\d]{1}[.]{1}[\d]{2}% overall alignment rate",
+    # err)
+    #try:
+    #    alignment_rate = regex_match.group(0).split("%")[0]
+    #except AttributeError:
+    #    print(err)
+    #    print("\nWARNING: bowtie2-build found matching file types and escaped "
+    #          "building "
+    #          "new index, however the specified file name does not match "
+    #          "bowtie index. Try renaming the output '-o' option to match "
+    #          "that of the bowtie2 idx files.\n")
+    #if alignment_rate > 0:
+    cprint("\n=== Running samtools ===\n", "green", attrs=["bold"])
+    print("2) " + "samtools faidx " + maindb_path)
+    proc2 = Popen(["samtools", "faidx", maindb_path],
+                  stdout = PIPE,
+                  stderr = PIPE)
+    proc2.wait()
+    #call('samtools faidx ' + maindb_path, shell=True)
+    bam_file = sam_file[:-3] + "bam"
+    print("3) " + "samtools view -b -S -t " + maindb_path + ".fai" +
+          " -@ " + threads + " -o " + bam_file + " " + sam_file)
+    samtools_view_cmd = [
+        "samtools",
+        "view",
+        "-b",
+        "-S",
+        "-t",
+        maindb_path + ".fai",
+        "-@",
+        threads,
+        "-o",
+        bam_file,
+        sam_file
+    ]
+    proc3 = Popen(samtools_view_cmd, stdout = PIPE, stderr = PIPE)
+    proc3.wait()
+    #call('samtools view -b -S -t ' + maindb_path + '.fai' +
+    #     ' -@ ' + threads + ' -o ' + bam_file + ' ' + sam_file,
+    #     shell=True)
+    sorted_bam_file = bam_file[:-3] + "sorted.bam"
+    print("4) " + "samtools sort" + " -@ " + threads + " -o " +
+          sorted_bam_file + " " + bam_file)
+    samtools_sort_cmd = [
+        "samtools",
+        "sort",
+        "-@",
+        threads,
+        "-o",
+        sorted_bam_file,
+        bam_file
+    ]
+    proc4 = Popen(samtools_sort_cmd, stdout = PIPE, stderr = PIPE)
+    proc4.wait()
+    #call("samtools sort" + " -@ " + threads + " -o " +
+    #     sorted_bam_file + " " + bam_file, shell=True)
+    print("5) " + "samtools index " + sorted_bam_file)
+    samtools_index_cmd = [
+        "samtools",
+        "index",
+        sorted_bam_file
+    ]
+    proc5 = Popen(samtools_index_cmd, stdout = PIPE, stderr = PIPE)
+    proc5.wait()
+    #call("samtools index " + sorted_bam_file, shell=True)
+    print("6) " + "samtools depth " + sorted_bam_file)
+    depth_file = sorted_bam_file + "_depth.txt"
+    print("Creating coverage Depth File: " + depth_file)
+    #samtools_depth_cmd = [
+    #    "samtools",
+    #    "depth",
+    #    sorted_bam_file,
+    #    ">",
+    #    depth_file
+    #]
+    samtools_depth_cmd = "samtools depth {} > {}".format(sorted_bam_file,
+                                                         depth_file)
+    proc6 = Popen(samtools_depth_cmd, stdout=PIPE, stderr=PIPE, shell=True)
+    proc6.wait()
+    return depth_file
 
 def main():
     parser = argparse.ArgumentParser(
