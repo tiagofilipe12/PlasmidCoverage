@@ -451,9 +451,9 @@ def main():
 
     # check the format of input directories to -r and -p options
     if not plasmids_dir.endswith("/"):
-        plasmid_dir = plasmid_dir + "/"
+        plasmid_dir += "/"
     if not reads_dir.endswith("/"):
-        reads_dir = reads_dir + "/"
+        reads_dir += "/"
 
     # Process plasmids references into a single fasta
 
