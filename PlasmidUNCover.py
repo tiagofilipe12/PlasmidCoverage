@@ -524,6 +524,9 @@ def main():
                 try:
                     percentage_basescovered, mean, metadata = depthfilereader(
                         depth_file, plasmid_length)
+                    print(percentage)
+                    print(percentage_basescovered)
+                    print(metadata)
                     sorted_perccoverage_dic = sorted(
                         percentage_basescovered.items(),
                         key=operator.itemgetter(1),
