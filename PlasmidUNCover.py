@@ -89,12 +89,12 @@ def fastadict(fasta_file):
 
 def sequencelengthfromfasta(fasta_file, plasmid_length, fasta_path):
     fasta_dic = fastadict(fasta_file)
-    out_handle = open(os.path.join(fasta_path + ".temp"), 'w')
+    out_handle = open(os.path.join(fasta_path + ".temp"), "w")
     for key in fasta_dic:
         new_key = "_".join(key.split("_")[0:3])  # stores only the acc for the
         # reference
         plasmid_length[new_key] = sum(len(s) for s in fasta_dic[key])
-        out_handle.write('>' + key + '\n' + ''.join(fasta_dic[key]) + '\n')
+        out_handle.write(">" + key + "\n" + "".join(fasta_dic[key]) + "\n")
     out_handle.close()
     return plasmid_length, len(fasta_dic.keys())
 
@@ -106,7 +106,7 @@ def extractfastaplasmids(gbkfile, fastafile, plasmid_length):
     plasmid_name = gbkdata.description[:-1]
     for char in plasmid_name:
         if char in problematic_characters:
-            plasmid_name = plasmid_name.replace(char, '_')
+            plasmid_name = plasmid_name.replace(char, "_")
     sequence = str(gbkdata.seq)
     if not sequence.endswith("\n"):
         sequence = sequence + "\n"
@@ -125,10 +125,10 @@ def createbowtieidx(filename, dirname, threads):
         os.makedirs(os.path.join(dirname + "bowtie2idx"))
     else:
         pass
-    idx_file = os.path.join(dirname, 'bowtie2idx',
-                            os.path.splitext(filename)[0]) + '.idx'
-    fasta_file = os.path.join(dirname, 'fasta',
-                              os.path.splitext(filename)[0]) + '.fasta'
+    idx_file = os.path.join(dirname, "bowtie2idx",
+                            os.path.splitext(filename)[0]) + ".idx"
+    fasta_file = os.path.join(dirname, "fasta",
+                              os.path.splitext(filename)[0]) + ".fasta"
     list_idxfiles = [idx_file + ".1.bt2", idx_file + ".2.bt2",
                      idx_file + ".3.bt2", idx_file + ".4.bt2",
                      idx_file + ".rev.2.bt2", idx_file + ".rev.1.bt2"]
@@ -175,18 +175,18 @@ def fastaconcatenation(dblist, output_name, plasmid_dir):
     return main_filename
 
 def python_cat(dblist, output_name):
-    destination = open(output_name, 'wb') #write and binary
+    destination = open(output_name, "wb") #write and binary
     for db in dblist:
-        shutil.copyfileobj(open(db, 'rb'), destination)
+        shutil.copyfileobj(open(db, "rb"), destination)
     destination.close()
-    #doesn't need to return... just create the file
+    #doesn"t need to return... just create the file
 
 # function to delete temporary fasta files
 def deltemp(directory):
     files = os.listdir(directory)
     print("Deleting temporary fasta files in: " + directory)
     for f in files:
-        if f.endswith('.temp'):
+        if f.endswith(".temp"):
             os.remove(os.path.join(directory, f))
 
 def depthfilereader(depth_file, plasmid_length):
@@ -215,36 +215,36 @@ def depthfilereader(depth_file, plasmid_length):
 
 def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
     trace_line = go.Scatter(x=number_plasmid, y=[cutoff] * len(number_plasmid),
-                            mode='lines', name='cut-off',
-                            marker=dict(color='rgb(255, 0, 0)'))
+                            mode="lines", name="cut-off",
+                            marker=dict(color="rgb(255, 0, 0)"))
     trace_list.append(trace_line)
     # x bars and 1 line plot
-    layout = go.Layout(barmode='group', yaxis=dict(title='Percentage of '
-                                                         'plasmid length '
-                                                         'covered'))
+    layout = go.Layout(barmode="group", yaxis=dict(title="Percentage of "
+                                                         "plasmid length "
+                                                         "covered"))
     fig = go.Figure(data=trace_list, layout=layout)
-    plotly.offline.plot(fig, filename=plasmid_db_out + '.html',
+    plotly.offline.plot(fig, filename=plasmid_db_out + ".html",
                                    auto_open=False)
 
 # PLASMIDS #
 def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
     count_entries = 0
     print("===================================================================")
-    cprint("Processing Plasmids in " + plasmids_path, 'green', attrs=['bold'])
+    cprint("Processing Plasmids in " + plasmids_path, "green", attrs=["bold"])
     pct = 0
     for dirname, dirnames, filenames in os.walk(plasmids_path, topdown=True):
         dirnames[:] = [d for d in dirnames if d not in ["bowtie2idx", "fasta"]]
         for filename in filenames:
             # if it is a genebank file
-            if filename.endswith('.gb'):
+            if filename.endswith(".gb"):
                 pct += 1
                 print("Plasmid (.gb) file found: " + filename)
                 print("\n")
                 print("#:" + str(pct))
                 gbfile = os.path.join(dirname, filename)
                 folderexist(os.path.join(dirname + "fasta"))
-                fasta_file = os.path.join(dirname, 'fasta',
-                                          filename[:-len('.gb')]) + '.fasta'
+                fasta_file = os.path.join(dirname, "fasta",
+                                          filename[:-len(".gb")]) + ".fasta"
                 if not (os.path.exists(fasta_file)):
                     print("Fasta file not file. Converting...")
                     # If fasta not found Transform .gb to .fasta
@@ -254,9 +254,9 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
                 else:
                     print("Fasta Found! No conversion needed")
                     # if there was a previous gb->fasta conversion
-                    fasta_path = os.path.join(dirname, 'fasta',
+                    fasta_path = os.path.join(dirname, "fasta",
                                               os.path.splitext(filename)[0]) + \
-                                 '.fasta'
+                                 ".fasta"
                     plasmid_length, fasta_entries = sequencelengthfromfasta(
                         fasta_file, plasmid_length, fasta_path)
                     fasta_file = fasta_path + ".temp"
@@ -271,9 +271,9 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
                 fasta_file = os.path.join(dirname,
                                           os.path.splitext(filename)[0]) + \
                              os.path.splitext(filename)[1]
-                fasta_path = os.path.join(dirname, 'fasta/',
+                fasta_path = os.path.join(dirname, "fasta/",
                                           os.path.splitext(filename)[0]) + \
-                             '.fasta'
+                             ".fasta"
                 print("Fasta Found! No conversion needed (.fasta)")
                 # copyfile(fasta_file, fasta_path)
                 # if there was a previous .gb->.fasta conversion
@@ -302,50 +302,50 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
 
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
            trim5):
-    cprint('\n=== Running bowtie2 ===\n', 'green', attrs=['bold'])
+    cprint("\n=== Running bowtie2 ===\n", "green", attrs=["bold"])
     if pair == True:
-        btc = ['bowtie2', '-x', idx_file, '-1', reads_file[0], '-2',
-              reads_file[1], '-p', threads, '-k', max_k, '-5', trim5, '-S',
+        btc = ["bowtie2", "-x", idx_file, "-1", reads_file[0], "-2",
+              reads_file[1], "-p", threads, "-k", max_k, "-5", trim5, "-S",
               sam_file]
     else:
-        btc = ['bowtie2', '-x', idx_file, '-U', reads_file, '-p',
-              threads, '-k', max_k, '-5', trim5, '-S', sam_file]
+        btc = ["bowtie2", "-x", idx_file, "-U", reads_file, "-p",
+              threads, "-k", max_k, "-5", trim5, "-S", sam_file]
     print("1) " + " ".join(btc))
     proc1 = Popen(btc, stdout = PIPE, stderr = PIPE)
     proc1.wait()
     #proc1 = Popen(btc, stdout=PIPE, stderr=PIPE, shell=True)
     out, err = proc1.communicate()
-    regex_match = re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate', err)
+    regex_match = re.search("[\d]{1}[.]{1}[\d]{2}% overall alignment rate", err)
     try:
-        alignment_rate = regex_match.group(0).split('%')[0]
+        alignment_rate = regex_match.group(0).split("%")[0]
     except AttributeError:
         print(err)
-        print('\nWARNING: bowtie2-build found matching file types and escaped '
-              'building '
-              'new index, however the specified file name does not match '
-              'bowtie index. Try renaming the output "-o" option to match '
-              'that of the bowtie2 idx files.\n')
+        print("\nWARNING: bowtie2-build found matching file types and escaped "
+              "building "
+              "new index, however the specified file name does not match "
+              "bowtie index. Try renaming the output "-o" option to match "
+              "that of the bowtie2 idx files.\n")
     if alignment_rate > 0:
-        cprint('\n=== Running samtools ===\n', 'green', attrs=['bold'])
-        print('2) ' + 'samtools faidx ' + maindb_path)
-        proc2 = Popen(['samtools', 'faidx', maindb_path],
+        cprint("\n=== Running samtools ===\n", "green", attrs=["bold"])
+        print("2) " + "samtools faidx " + maindb_path)
+        proc2 = Popen(["samtools", "faidx", maindb_path],
                          stdout = PIPE,
                         stderr = PIPE)
         proc2.wait()
         #call('samtools faidx ' + maindb_path, shell=True)
-        bam_file = sam_file[:-3] + 'bam'
-        print('3) ' + 'samtools view -b -S -t ' + maindb_path + '.fai' +
-              ' -@ ' + threads + ' -o ' + bam_file + ' ' + sam_file)
+        bam_file = sam_file[:-3] + "bam"
+        print("3) " + "samtools view -b -S -t " + maindb_path + ".fai" +
+              " -@ " + threads + " -o " + bam_file + " " + sam_file)
         samtools_view_cmd = [
-            'samtools',
-            'view',
-            '-b',
-            '-S',
-            '-t',
-            maindb_path + '.fai',
-            '-@',
+            "samtools",
+            "view",
+            "-b",
+            "-S",
+            "-t",
+            maindb_path + ".fai",
+            "-@",
             threads,
-            '-o',
+            "-o",
             bam_file,
             sam_file
         ]
@@ -354,42 +354,42 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
         #call('samtools view -b -S -t ' + maindb_path + '.fai' +
         #     ' -@ ' + threads + ' -o ' + bam_file + ' ' + sam_file,
         #     shell=True)
-        sorted_bam_file = bam_file[:-3] + 'sorted.bam'
-        print('4) ' + 'samtools sort' + ' -@ ' + threads + ' -o ' +
-              sorted_bam_file + ' ' + bam_file)
+        sorted_bam_file = bam_file[:-3] + "sorted.bam"
+        print("4) " + "samtools sort" + " -@ " + threads + " -o " +
+              sorted_bam_file + " " + bam_file)
         samtools_sort_cmd = [
-            'samtools',
-            'sort',
-            '-@',
+            "samtools",
+            "sort",
+            "-@",
             threads,
-            '-o',
+            "-o",
             sorted_bam_file,
             bam_file
         ]
         proc4 = Popen(samtools_sort_cmd, stdout = PIPE, stderr = PIPE)
         proc4.wait()
-        #call('samtools sort' + ' -@ ' + threads + ' -o ' +
-        #     sorted_bam_file + ' ' + bam_file, shell=True)
-        print('5) ' + 'samtools index ' + sorted_bam_file)
+        #call("samtools sort" + " -@ " + threads + " -o " +
+        #     sorted_bam_file + " " + bam_file, shell=True)
+        print("5) " + "samtools index " + sorted_bam_file)
         samtools_index_cmd = [
-            'samtools',
-            'index',
+            "samtools",
+            "index",
             sorted_bam_file
         ]
         proc5 = Popen(samtools_index_cmd, stdout = PIPE, stderr = PIPE)
         proc5.wait()
-        #call('samtools index ' + sorted_bam_file, shell=True)
-        print('6) ' + 'samtools depth ' + sorted_bam_file)
-        depth_file = sorted_bam_file + '_depth.txt'
+        #call("samtools index " + sorted_bam_file, shell=True)
+        print("6) " + "samtools depth " + sorted_bam_file)
+        depth_file = sorted_bam_file + "_depth.txt"
         print("Creating coverage Depth File: " + depth_file)
         #samtools_depth_cmd = [
-        #    'samtools',
-        #    'depth',
+        #    "samtools",
+        #    "depth",
         #    sorted_bam_file,
-        #    '>',
+        #    ">",
         #    depth_file
         #]
-        samtools_depth_cmd = 'samtools depth {} > {}'.format(sorted_bam_file,
+        samtools_depth_cmd = "samtools depth {} > {}".format(sorted_bam_file,
                                                              depth_file)
         proc6 = Popen(samtools_depth_cmd, stdout=PIPE, stderr=PIPE, shell=True)
         proc6.wait()
@@ -400,40 +400,40 @@ def main():
         description="Outputs a coverage percentage for each Plasmid gbk in "
                     "PlasmidDir using the reads presented in the directory "
                     "structure in ReadsDir")
-    parser.add_argument('-p', '--plasmid', dest='plasmid_dir', required=True,
-                        help='Provide the path to the directory containing '
-                             'plasmid fastas')
-    parser.add_argument('-r', '--read', dest='read_dir', required=True,
-                        help='Provide the path to the directory containing '
-                             'reads fastas')
-    parser.add_argument('-t', '--threads', dest='threads', default="1",
+    parser.add_argument("-p", "--plasmid", dest="plasmid_dir", required=True,
+                        help="Provide the path to the directory containing "
+                             "plasmid fastas")
+    parser.add_argument("-r", "--read", dest="read_dir", required=True,
+                        help="Provide the path to the directory containing "
+                             "reads fastas")
+    parser.add_argument("-t", "--threads", dest="threads", default="1",
                         help="Specify the number of threads to be used by "
                              "bowtie2")
-    parser.add_argument('-2', '--pair', dest='paired', action='store_true',
-                        help='Use this option if you have paired end reads. '
-                             'Paired end reads just have to be inside the '
-                             'same folder, without any other files inside it. '
-                             'Structure to read files should be something '
-                             'like: ./reads/read_folder/<with pairs inside '
-                             'it>.')
-    parser.add_argument('-k', "--max_align", dest="max_align",
+    parser.add_argument("-2", "--pair", dest="paired", action="store_true",
+                        help="Use this option if you have paired end reads. "
+                             "Paired end reads just have to be inside the "
+                             "same folder, without any other files inside it. "
+                             "Structure to read files should be something "
+                             "like: ./reads/read_folder/<with pairs inside "
+                             "it>.")
+    parser.add_argument("-k", "--max_align", dest="max_align",
                         help="Specify the maximum number of alignments possible "
                              "for each read. This options changes -k parameter "
                              "of Bowtie2. By default this script will set -k to "
                              "the number of fastas in reference directory (e.g. "
                              "if you have 3 reference sequences the number of "
                              "max_align allowed will automatically be set to 3.")
-    parser.add_argument('-5', "--trim5", dest="trim5", default="0",
+    parser.add_argument("-5", "--trim5", dest="trim5", default="0",
                         help="bowtie2 option: Trim <int> bases from 5' (left)"
                              "end of each read before alignment (default: 0).")
-    parser.add_argument('-o', '--output', dest='output_name',
+    parser.add_argument("-o", "--output", dest="output_name",
                         default="plasmid_db_out",
-                        help='Specify the output name you wish. No need for '
-                             'file extension!')
-    parser.add_argument('-c', '--cutoff', dest='cutoff_number', default="0.00",
-                        help='Specify the cutoff for percentage of plasmid '
-                             'coverage that reads must have to be in the '
-                             'output. This should be a number between 0.00-1.00')
+                        help="Specify the output name you wish. No need for "
+                             "file extension!")
+    parser.add_argument("-c", "--cutoff", dest="cutoff_number", default="0.00",
+                        help="Specify the cutoff for percentage of plasmid "
+                             "coverage that reads must have to be in the "
+                             "output. This should be a number between 0.00-1.00")
 
     # parser.add_argument('--only-plasmid', dest='only_plasmid',
     # action='store_true', help='If you just want to have the result of plasmid sequences rather than whole reads (chromosomal + plasmid reads).') # Still not implemented
