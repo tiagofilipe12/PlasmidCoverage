@@ -479,6 +479,8 @@ def main():
         idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
     else:
         idx_file = args.bowtie_index
+        count_entries = 11371 # TODO hardcoded to max number of entries in db
+        #  fasta
 
     # READS#
     output_txt = open(args.output_name + ".txt", "w")
