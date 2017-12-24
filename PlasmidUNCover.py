@@ -302,7 +302,7 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
     return main_db, count_entries
 
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
-           trim5):
+           trim5, indexes):
     cprint("\n=== Running bowtie2 ===\n", "green", attrs=["bold"])
     if pair == True:
         btc = ["bowtie2", "-x", idx_file, "-1", reads_file[0], "-2",
@@ -329,11 +329,14 @@ def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
     #          "that of the bowtie2 idx files.\n")
     #if alignment_rate > 0:
     cprint("\n=== Running samtools ===\n", "green", attrs=["bold"])
-    print("2) " + "samtools faidx " + maindb_path)
-    proc2 = Popen(["samtools", "faidx", maindb_path],
-                  stdout = PIPE,
-                  stderr = PIPE)
-    proc2.wait()
+    if indexes == False:
+        print("2) " + "samtools faidx " + maindb_path)
+        proc2 = Popen(["samtools", "faidx", maindb_path],
+                      stdout = PIPE,
+                      stderr = PIPE)
+        proc2.wait()
+    else:
+        print("2) " + maindb_path + ".fai found! Proceeding to next step")
     #call('samtools faidx ' + maindb_path, shell=True)
     bam_file = sam_file[:-3] + "bam"
     print("3) " + "samtools view -b -S -t " + maindb_path + ".fai" +
@@ -405,8 +408,8 @@ def main():
     parser.add_argument("-p", "--plasmid", dest="plasmid_dir",
                         help="Provide the path to the directory containing "
                              "plasmid fastas")
-    parser.add_argument("-idx", "--bowtie-index", dest="bowtie_index",
-                        help="Provide the path to bowtie index file")
+    parser.add_argument("-idx", "--indexes_folder", dest="indexes",
+                        help="Provide the path to indexes folders")
     parser.add_argument("-r", "--read", dest="read_dir", required=True,
                         help="Provide the path to the directory containing "
                              "reads fastas, but do not use the suffix of all "
@@ -466,7 +469,7 @@ def main():
 
     # Process plasmids references into a single fasta
 
-    if not args.bowtie_index:
+    if not args.indexes:
         maindb, count_entries = plasmidprocessing(dblist, plasmids_dir,
                                                   plasmid_length, args.output_name)
         print(count_entries)
@@ -477,10 +480,14 @@ def main():
 
     # Create Bowtie Idx files for plasmid references
         idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
+        indexes = False
     else:
-        idx_file = args.bowtie_index
+        idx_file = os.path.join(args.bowtie_index + "bowtie2idx/" +
+                                "bowtie2.idx")
         count_entries = 11371 # TODO hardcoded to max number of entries in db
         #  fasta
+        maindb_path = os.path.join(plasmids_dir + "fasta/" + "samtools.fasta")
+        indexes = True
 
     # READS#
     output_txt = open(args.output_name + ".txt", "w")
@@ -523,14 +530,14 @@ def main():
                             depth_file = mapper(args.paired, idx_file,
                                                 reads_list, threads, max_k,
                                                 sam_file, maindb_path,
-                                                args.trim5)
+                                                args.trim5, indexes)
                             reads_list = []
                             file_reset = False
                         else:
                             depth_file = mapper(args.paired, idx_file,
                                                 reads_file, threads, max_k,
                                                 sam_file, maindb_path,
-                                                args.trim5)
+                                                args.trim5, indexes)
 
                 # Compute descriptive statistics and prints to tabular txt file
                 try:
