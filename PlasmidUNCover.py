@@ -482,7 +482,7 @@ def main():
         idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
         indexes = False
     else:
-        idx_file = os.path.join(args.bowtie_index + "bowtie2idx/" +
+        idx_file = os.path.join(args.indexes + "bowtie2idx/" +
                                 "bowtie2.idx")
         count_entries = 11371 # TODO hardcoded to max number of entries in db
         #  fasta
