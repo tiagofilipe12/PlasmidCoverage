@@ -14,13 +14,20 @@ option is deprecated however you can still use it. Just make sure you install pr
 
 In both versions, .gb files are also supported. These files will be converted into fasta files in a subdirectory named "fasta" within the directory the user specifies for plasmid.
 
+## How to install
+
+* First install [bowtie2](https://sourceforge.net/projects/bowtie-bio/files/bowtie2/) (v2.2.9 or higher) and 
+[samtools](https://sourceforge.net/projects/samtools/files/samtools/) (v.1.3.1 or 
+higher).
+* Then, `pip3 install -r requirements.txt`
+
 ## Dependencies
 * plotly - ```pip install plotly```
 * termcolor
 * bowtie2 (tested for version 2.2.9)
 * samtools (tested for version 1.3.1)
 
-You can now simply: ```pip install -r requirements.txt```
+You can now simply: ```pip3 install -r requirements.txt```
 
 ## Important note regarding the parsing of argument -r
 
