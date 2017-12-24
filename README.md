@@ -31,6 +31,8 @@ You should provide the path to the directory containing the directories with the
 ```
 **'-p'**,**'--plasmid'**, dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas.'
 
+**-idx**, **"--bowtie-index"**, dest="bowtie_index", help="Provide the path to bowtie index file"
+
 **'-r'**,**'--read'**, dest='read_dir', required=True, help='Provide the path to the directory containing reads fastas.'
 
 **'-t'**, **'--threads'**, dest='threads', default="1", help="Specify the number of threads to be used by bowtie2."

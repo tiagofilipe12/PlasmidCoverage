@@ -402,12 +402,18 @@ def main():
         description="Outputs a coverage percentage for each Plasmid gbk in "
                     "PlasmidDir using the reads presented in the directory "
                     "structure in ReadsDir")
-    parser.add_argument("-p", "--plasmid", dest="plasmid_dir", required=True,
+    parser.add_argument("-p", "--plasmid", dest="plasmid_dir",
                         help="Provide the path to the directory containing "
                              "plasmid fastas")
+    parser.add_argument("-idx", "--bowtie-index", dest="bowtie_index",
+                        help="Provide the path to bowtie index file")
     parser.add_argument("-r", "--read", dest="read_dir", required=True,
                         help="Provide the path to the directory containing "
-                             "reads fastas")
+                             "reads fastas, but do not use the suffix of all "
+                             "the 6 files. Use something like "
+                             "'/path/to/bowtie.idx', "
+                             "since the bowtie will recognize all files "
+                             "associated with that index file")
     parser.add_argument("-t", "--threads", dest="threads", default="1",
                         help="Specify the number of threads to be used by "
                              "bowtie2")
@@ -468,7 +474,10 @@ def main():
     deltemp(os.path.join(plasmids_dir + "fasta/"))
 
     # Create Bowtie Idx files for plasmid references
-    idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
+    if not args.bowtie_index:
+        idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
+    else:
+        idx_file = args.bowtie_index
 
     # READS#
     output_txt = open(args.output_name + ".txt", "w")
