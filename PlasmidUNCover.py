@@ -458,8 +458,9 @@ def main():
     reads_dir = args.read_dir
 
     # check the format of input directories to -r and -p options
-    if not plasmids_dir.endswith("/"):
-        plasmid_dir += "/"
+    if plasmid_dir:
+        if not plasmids_dir.endswith("/"):
+            plasmid_dir += "/"
     if not reads_dir.endswith("/"):
         reads_dir += "/"
 
