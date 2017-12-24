@@ -466,16 +466,16 @@ def main():
 
     # Process plasmids references into a single fasta
 
-    maindb, count_entries = plasmidprocessing(dblist, plasmids_dir,
-                                              plasmid_length, args.output_name)
-    print(count_entries)
-    maindb_path = os.path.join(plasmids_dir + "fasta/" + maindb)
+    if not args.bowtie_index:
+        maindb, count_entries = plasmidprocessing(dblist, plasmids_dir,
+                                                  plasmid_length, args.output_name)
+        print(count_entries)
+        maindb_path = os.path.join(plasmids_dir + "fasta/" + maindb)
 
-    # Deletes temporary fastas created during plasmidprocessing function
-    deltemp(os.path.join(plasmids_dir + "fasta/"))
+        # Deletes temporary fastas created during plasmidprocessing function
+        deltemp(os.path.join(plasmids_dir + "fasta/"))
 
     # Create Bowtie Idx files for plasmid references
-    if not args.bowtie_index:
         idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
     else:
         idx_file = args.bowtie_index
