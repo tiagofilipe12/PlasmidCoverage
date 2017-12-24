@@ -22,6 +22,7 @@ higher).
 * Second, download the [latest release](https://github.com/tiagofilipe12/PlasmidCoverage/releases/tag/v.1.0.0) of this script
 (don't forget to download [indexes folder](https://github.com/tiagofilipe12/PlasmidCoverage/releases/download/v.1.0.0/indexes.tar.gz))
 * Then, `pip3 install -r requirements.txt`
+* Finally, uncompress the `indexes.tar.gz` file.
 
 ## Example run
 
