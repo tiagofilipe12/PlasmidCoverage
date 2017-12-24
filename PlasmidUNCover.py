@@ -486,7 +486,7 @@ def main():
                                 "bowtie2.idx")
         count_entries = 11371 # TODO hardcoded to max number of entries in db
         #  fasta
-        maindb_path = os.path.join(plasmids_dir + "fasta/" + "samtools.fasta")
+        maindb_path = os.path.join(args.indexes + "fasta/" + "samtools.fasta")
         indexes = True
 
     # READS#
