@@ -33,7 +33,7 @@ You can now simply: ```pip3 install -r requirements.txt```
 
 You should provide the path to the directory containing the directories with the reads (.fastq files). For instance if you have something like `~/Reads/sample1/example.fastq` and `~/Reads/sample2/example2.fastq`, you should provide `~/Reads` as the argument for `-r` option.
 
-### Options for PlasmidCoverage_Sdb.py:
+### Options for PlasmidUNCoverage.py:
 
 ```
 **'-p'**,**'--plasmid'**, dest='plasmid_dir', required=True, help='Provide the path to the directory containing plasmid fastas.'
