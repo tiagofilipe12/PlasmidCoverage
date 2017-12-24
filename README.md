@@ -19,7 +19,20 @@ In both versions, .gb files are also supported. These files will be converted in
 * First install [bowtie2](https://sourceforge.net/projects/bowtie-bio/files/bowtie2/) (v2.2.9 or higher) and 
 [samtools](https://sourceforge.net/projects/samtools/files/samtools/) (v.1.3.1 or 
 higher).
+* Second, download the [latest release](https://github.com/tiagofilipe12/PlasmidCoverage/releases/tag/v.1.0.0) of this script
+(don't forget to download [indexes folder](https://github.com/tiagofilipe12/PlasmidCoverage/releases/download/v.1.0.0/indexes.tar.gz))
 * Then, `pip3 install -r requirements.txt`
+
+## Example run
+
+`PlasmidUNCover.py -idx <path/to/indexes_folder> -r <path/to/reads_folder> -t 1 -o test -c 0.6`
+
+Note that each read or pair of reads should be inside its own folder within 
+the `path/to/reads_folder/`. This allows the user to run multiple samples at 
+once, since `PlasmidUNCoverage.py` will crawl this directory to search for 
+directories with samples.
+
+For advanced users, you may use `PlasmidUNCoverage.py -h` for more options.
 
 ## Dependencies
 * plotly - ```pip install plotly```
