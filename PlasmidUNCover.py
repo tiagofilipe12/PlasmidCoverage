@@ -20,12 +20,44 @@ import json
 from termcolor import cprint
 
 def search_substing(string):
+    '''
+    A function to search for a substring containing the plasmid name
+    Parameters
+    ----------
+    string: str
+        The string to be searched. Usually a sequence header, a fasta entry.
+
+    Returns
+    -------
+    plasmid_name: str
+        The name of the plasmid if the regex returns anything related with
+        "plasmid"
+
+    '''
     plasmid_search = re.search('plasmid(.+?)__', string)
     if plasmid_search:
         plasmid_name = plasmid_search.group(1).replace("_", "")
         return plasmid_name
 
 def alignmaxnumber(max_align, count_entries):
+    '''
+    A function that ascertains if max_align option was provided. If no
+    max_align is provided by the user (with the -k option) then max_align
+    will be set to the number of entries in fastas, i.e., the total number of
+    sequences present in all fastas provided as input
+    Parameters
+    ----------
+    max_align: str
+        The args passed with -k, if any
+    count_entries: float
+        The number of entries in fasta
+
+    Returns
+    -------
+    k_value: str
+        The value to be set for -k option for bowtie2
+
+    '''
     if max_align:
         k_value = max_align
     else:
@@ -34,6 +66,14 @@ def alignmaxnumber(max_align, count_entries):
 
 
 def folderexist(directory):
+    '''
+    A function that checks if a directory already exists
+    Parameters
+    ----------
+    directory: str
+        The path to the directory to be checked
+
+    '''
     if not directory.endswith("/"):
         directory = directory + "/"
     if not os.path.exists(os.path.join(directory)):
@@ -44,6 +84,21 @@ def folderexist(directory):
         print(os.path.join(directory) + " exists!")
 
 def fastadict(fasta_file):
+    '''
+    Creates an associative dictionary between the sequences name / header and
+    the sequence itself
+    Parameters
+    ----------
+    fasta_file: str
+        The path to the fasta file to be parsed here
+
+    Returns
+    -------
+    fasta_dic: dict
+        A dictionary with keys as the sequence headers and the sequence as
+        the corresponding value
+
+    '''
     if_handle = open(fasta_file, 'r')
     x = 0
     fasta_dic = {}
@@ -88,6 +143,25 @@ def fastadict(fasta_file):
     return fasta_dic
 
 def sequencelengthfromfasta(fasta_file, plasmid_length, fasta_path):
+    '''
+    A function to obtain sequence length when parsing fastas. Actually counts
+    the number of bases in each accession
+    Parameters
+    ----------
+    fasta_file: str
+        The path to the fasta file to be parsed here
+    plasmid_length: dict
+        The dictionary that will store the key: value for accessions: lengths (empty)
+    fasta_path: str
+        The path to the fasta files
+
+    Returns
+    -------
+    plasmid_length: dict
+        The dictionary of accessions and lengths (populated)
+    len(fasta_dic.keys())
+
+    '''
     fasta_dic = fastadict(fasta_file)
     out_handle = open(os.path.join(fasta_path + ".temp"), "w")
     for key in fasta_dic:
@@ -99,6 +173,23 @@ def sequencelengthfromfasta(fasta_file, plasmid_length, fasta_path):
     return plasmid_length, len(fasta_dic.keys())
 
 def extractfastaplasmids(gbkfile, fastafile, plasmid_length):
+    '''
+    A legacy function that was used to extract fastas from gb files
+    Parameters
+    ----------
+    gbkfile: str
+        The path to the genbank file
+    fastafile: str
+        A path to the fasta file
+    plasmid_length: dict
+        Stores the length of each sequence in fastas (empty)
+
+    Returns
+    -------
+    plasmid_length: dict
+        Stores the length of each sequence in fastas (populated)
+
+    '''
     if_handle = open(gbkfile, 'r')
     gbkdata = SeqIO.read(if_handle, "genbank")
     problematic_characters = ["|", " ", ",", ".", "(", ")", "'", "/",
@@ -121,6 +212,28 @@ def extractfastaplasmids(gbkfile, fastafile, plasmid_length):
     return plasmid_length
 
 def createbowtieidx(filename, dirname, threads):
+    '''
+    A function to create the bowtie2 index in the case -idx option is not
+    selected and -p option is provided
+    Parameters
+    ----------
+    filename: str
+        The path to the concatenated fasta file with all sequences
+    dirname: str
+        The path to the directory that contains the fasta files used to make
+        the concatenated fasta and that here will be used to generate the
+        bowtie2 index
+    threads: str
+        The number of threads to be used by bowtie2 to create the index files
+
+    Returns
+    -------
+    idx_file: str
+        A string with the common name for all 6 bowtie2 index files (given
+        that bowtie2 automatically can detect all these file given the
+        correct file name pattern)
+
+    '''
     if not os.path.exists(os.path.join(dirname + "bowtie2idx")):
         os.makedirs(os.path.join(dirname + "bowtie2idx"))
     else:
@@ -154,6 +267,24 @@ def createbowtieidx(filename, dirname, threads):
     return idx_file
 
 def fastaconcatenation(dblist, output_name, plasmid_dir):
+    '''
+    A function to concatenate fasta files into a main fasta file
+    Parameters
+    ----------
+    dblist: list
+        A list that stores the paths to the files containing the plasmid
+        sequences
+    output_name: str
+        The name of the outputs specified by the user
+    plasmid_dir: str
+        The path to fastas containing fastas
+
+    Returns
+    -------
+    main_filename: str
+        The name of the main concatenated fasta file
+
+    '''
     #print(dblist)
     main_filename = output_name + ".fasta"
     #print(main_filename)
@@ -175,6 +306,17 @@ def fastaconcatenation(dblist, output_name, plasmid_dir):
     return main_filename
 
 def python_cat(dblist, output_name):
+    '''
+    A function to concatenate files
+    Parameters
+    ----------
+    dblist: list
+        A list that stores the paths to the files
+        containing the plasmid sequences
+    output_name: str
+        The name of the outputs specified by the user
+
+    '''
     destination = open(output_name, "wb") #write and binary
     for db in dblist:
         shutil.copyfileobj(open(db, "rb"), destination)
@@ -183,6 +325,14 @@ def python_cat(dblist, output_name):
 
 # function to delete temporary fasta files
 def deltemp(directory):
+    '''
+    A function to delete temporary directories
+    Parameters
+    ----------
+    directory: str
+        The directory to be removed
+
+    '''
     files = os.listdir(directory)
     print("Deleting temporary fasta files in: " + directory)
     for f in files:
@@ -191,7 +341,9 @@ def deltemp(directory):
 
 def depthfilereader(depth_file, plasmid_length):
     '''
-    Function that parse samtools depth file
+    Function that parse samtools depth file and creates 3 dictionaries that
+    will be useful to make the outputs of this script, both the tabular file
+    and the json file that may be imported by pATLAS
 
     Parameters
     ----------
@@ -237,6 +389,17 @@ def depthfilereader(depth_file, plasmid_length):
     return percentage_basescovered, mean, metadata
 
 def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
+    '''
+    A function to create bar plots for the results. This is now a legacy
+    function and that may become deprecate in further implementations of this script
+    Parameters
+    ----------
+    trace_list
+    cutoff
+    number_plasmid
+    plasmid_db_out
+
+    '''
     trace_line = go.Scatter(x=number_plasmid, y=[cutoff] * len(number_plasmid),
                             mode="lines", name="cut-off",
                             marker=dict(color="rgb(255, 0, 0)"))
@@ -251,6 +414,30 @@ def bar_plot(trace_list, cutoff, number_plasmid, plasmid_db_out):
 
 # PLASMIDS #
 def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
+    '''
+    Function to parse multiple fasta files and generate a main fasta to be
+    used by bowtie2
+    Parameters
+    ----------
+    dblist: list
+        An empty list that will be used to store the paths to the files
+        containing the plasmid sequences
+    plasmids_path: str
+        The path to fastas containing fastas
+    plasmid_length: dict
+        A dictionary that will store a reference between each accession
+        number and its sequence length
+    output_name: str
+        The string naming the output
+
+    Returns
+    -------
+    main_db: str
+        The path to the concatenated fasta file with all sequences
+    count_entries: float
+        The number of sequences present in main_db
+
+    '''
     count_entries = 0
     print("===================================================================")
     cprint("Processing Plasmids in " + plasmids_path, "green", attrs=["bold"])
@@ -330,6 +517,44 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
 
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
            trim5, indexes):
+    '''
+    The function that actually runs bowtie2 and samtools after creating the
+    bowtie2 index file and processing the input fastas
+    Parameters
+    ----------
+    pair: bool
+        A boolean which tells if paired end is provided in reads folders. If
+        not defined then single read file mode is provided to bowtie2
+    idx_file: str
+        A string with the file path to bowtie2 index files
+    reads_file: str
+        A string with the path to the location of reads
+    threads: str
+        The number of threads to be used by bowtie2 and samtools
+    max_k: str
+        the number of maximum possible matches for a sequence (-k parameter
+        for bowtie2
+    sam_file: str
+        The path to sam_file
+    maindb_path: str
+        The path to the main fasta file (concatenated plasmid fasta file).
+        This is used to either create .fai index for samtools or to indicate
+        the path to it
+    trim5: str
+        indicates the number of bases that should be trimmed from the left of
+        the sequence. It is a parameter for bowtie2 (-5).
+    indexes: bool
+        indicates whether indexes file are provided with the -idx option or not.
+        This is useful for the script to know if it needs to create a new
+        samtools .fai index or if it can use an existing one.
+
+    Returns
+    -------
+    depth_file: str
+        This is a string that stores the path to depth file that will be used
+        afterwards for .txt and .json outputs for that read set
+
+    '''
     cprint("\n=== Running bowtie2 ===\n", "green", attrs=["bold"])
     if pair == True:
         btc = ["bowtie2", "-x", idx_file, "-1", reads_file[0], "-2",
