@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-# Last update: 28/7/2017
+# Last update: 25/12/2017
 # Author: T.F. Jesus
 # This version runs with bowtie2 build 2.2.9, with multithreading for
 # bowtie2-build
@@ -227,6 +227,7 @@ def depthfilereader(depth_file, plasmid_length):
             depth_dic_coverage[reference] = {}
         depth_dic_coverage[reference][position] = numreadsalign
         metadata[reference] = [species, plasmid_name, plasmid_length[reference]]
+    #print(depth_dic_coverage)
     percentage_basescovered, mean = {}, {}
     for ref in depth_dic_coverage:
         percentage_basescovered[ref] = float(len(depth_dic_coverage[ref])) / \
@@ -530,55 +531,52 @@ def main():
 
             for dirname2, dirnames2, filenames2 in os.walk(os.path.join(dirname,
                                                                         subdirname)):
-                # for filename in filenames2:
-                #     if filename.find('fastq') != -1 or filename.find('fq') !=\
-                #             -1:
-                #         fn = filename.split('.')[0]
-                #         strain_list.append(fn)
-                #         print("\n")
-                #         print("+++++++++++++++++++++++++++++++++++++++++++++++"
-                #               "++++++++++++++++++++++++++++++++++++++++")
-                #         print("\n")
-                #         print("Filename: " + filename)
-                #         print("\n")
-                #         datetime.fromtimestamp(time()).strftime(
-                #             '%Y-%m-%d %H:%M:%S')
-                #         # print "Mapping "+ filename+" vs "+ maindb_path
-                #         sam_file = dirname2 + '/' + args.output_name + '_' + \
-                #                    subdirname + '.sam'
-                #         reads_file = os.path.join(dirname2, filename)
-                #         threads = args.threads
-                #         max_k = alignmaxnumber(args.max_align, count_entries)
-                #         if args.paired \
-                #                 and file_reset != True:
-                #             reads_list = [reads_file]
-                #             file_reset = True
-                #         elif args.paired \
-                #                 and file_reset == True:
-                #             reads_list.append(reads_file)
-                #             depth_file = mapper(args.paired, idx_file,
-                #                                 reads_list, threads, max_k,
-                #                                 sam_file, maindb_path,
-                #                                 args.trim5, indexes)
-                #             reads_list = []
-                #             file_reset = False
-                #         else:
-                #             depth_file = mapper(args.paired, idx_file,
-                #                                 reads_file, threads, max_k,
-                #                                 sam_file, maindb_path,
-                #                                 args.trim5, indexes)
+                for filename in filenames2:
+                    if filename.find('fastq') != -1 or filename.find('fq') !=\
+                            -1:
+                        fn = filename.split('.')[0]
+                        strain_list.append(fn)
+                        print("\n")
+                        print("+++++++++++++++++++++++++++++++++++++++++++++++"
+                              "++++++++++++++++++++++++++++++++++++++++")
+                        print("\n")
+                        print("Filename: " + filename)
+                        print("\n")
+                        datetime.fromtimestamp(time()).strftime(
+                            '%Y-%m-%d %H:%M:%S')
+                        # print "Mapping "+ filename+" vs "+ maindb_path
+                        sam_file = dirname2 + '/' + args.output_name + '_' + \
+                                   subdirname + '.sam'
+                        reads_file = os.path.join(dirname2, filename)
+                        threads = args.threads
+                        max_k = alignmaxnumber(args.max_align, count_entries)
+                        if args.paired \
+                                and file_reset != True:
+                            reads_list = [reads_file]
+                            file_reset = True
+                        elif args.paired \
+                                and file_reset == True:
+                            reads_list.append(reads_file)
+                            depth_file = mapper(args.paired, idx_file,
+                                                reads_list, threads, max_k,
+                                                sam_file, maindb_path,
+                                                args.trim5, indexes)
+                            reads_list = []
+                            file_reset = False
+                        else:
+                            depth_file = mapper(args.paired, idx_file,
+                                                reads_file, threads, max_k,
+                                                sam_file, maindb_path,
+                                                args.trim5, indexes)
 
                 # Compute descriptive statistics and prints to tabular txt file
-                print(plasmid_length)
 
-                depth_file = "reads_sample/SRR3999081/reads_sample_result_SRR3999081.sorted.bam_depth.txt"
-                print(depth_file)
                 #try:
                 percentage_basescovered, mean, metadata = depthfilereader(
                     depth_file, plasmid_length)
-                print(percentage)
-                print(percentage_basescovered)
-                print(metadata)
+                # print(percentage_basescovered)
+                # print(mean)
+                # print(metadata)
                 sorted_perccoverage_dic = sorted(
                     percentage_basescovered.items(),
                     key=operator.itemgetter(1),
