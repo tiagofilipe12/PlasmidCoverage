@@ -212,7 +212,6 @@ def depthfilereader(depth_file, plasmid_length):
         Stores information of species, plasmid_name and sequence length for
         each plasmid key in a List
     '''
-    print("depth_file_reading", depth_file)
     metadata = {}
     depth_info = open(depth_file, "r")
     depth_dic_coverage = {}
@@ -574,70 +573,70 @@ def main():
 
                 depth_file = "reads_sample/SRR3999081/reads_sample_result_SRR3999081.sorted.bam_depth.txt"
                 print(depth_file)
-                try:
-                    percentage_basescovered, mean, metadata = depthfilereader(
-                        depth_file, plasmid_length)
-                    print(percentage)
-                    print(percentage_basescovered)
-                    print(metadata)
-                    sorted_perccoverage_dic = sorted(
-                        percentage_basescovered.items(),
-                        key=operator.itemgetter(1),
-                        reverse=True)
-                    tmp_list_k, list_all_k, list_all_v = [], [], []
-                    if 0 <= float(args.cutoff_number) <= 1:
-                        # outputs a json file per input file
-                        output_json = open(args.output_name + fn + ".json",
-                                           "w")  # new output json
-                        json_dict = {}
+                #try:
+                percentage_basescovered, mean, metadata = depthfilereader(
+                    depth_file, plasmid_length)
+                print(percentage)
+                print(percentage_basescovered)
+                print(metadata)
+                sorted_perccoverage_dic = sorted(
+                    percentage_basescovered.items(),
+                    key=operator.itemgetter(1),
+                    reverse=True)
+                tmp_list_k, list_all_k, list_all_v = [], [], []
+                if 0 <= float(args.cutoff_number) <= 1:
+                    # outputs a json file per input file
+                    output_json = open(args.output_name + fn + ".json",
+                                       "w")  # new output json
+                    json_dict = {}
 
-                        if counter == 0:
-                            output_txt.write(
-                                "NOTE: outputted results for plasmids with "
-                                "more than " + args.cutoff_number + " mapping"
-                                                                    " coverage.\n\n")
-                            counter = 1
-                        for k, v in sorted_perccoverage_dic:
-                            if v >= float(args.cutoff_number):
-                                tmp_list_k.append(k)
-                                #tmp_list_v.append(v)
-                                json_dict[k] = v
-                            if k not in master_keys:
-                                master_keys.append(k)
-                            list_all_v.append(v)
-                            list_all_k.append(k)
-
-                        # COVERAGE PERCENTAGE #
+                    if counter == 0:
                         output_txt.write(
-                            "Read name: " + fn + "\nReference sequence\t"
-                                                 "Coverage percentage\t"
-                                                 "Mean mapping depth\t"
-                                                 "Sequence length\t"
-                                                 "Species name\t"
-                                                 "Plasmid name\n")
-                        # count_x=0
-                        for element in tmp_list_k:
-                            output_txt.write(
-                                str(element) + "\t")  # outputs ref sequence
-                            output_txt.write(
-                                str(percentage_basescovered[
-                                        element]) + "\t")  # outputs coverage percentage
-                            output_txt.write(str(mean[element]) + "\t")
-                            # outputs mean mapping depth
-                            output_txt.write("{}\t{}\t{}\n".format(str(metadata[
-                                element][2]), " ".join(str(metadata[element][
-                                0]).split("_")), str(metadata[element][1])))
+                            "NOTE: outputted results for plasmids with "
+                            "more than " + args.cutoff_number + " mapping"
+                                                                " coverage.\n\n")
+                        counter = 1
+                    for k, v in sorted_perccoverage_dic:
+                        if v >= float(args.cutoff_number):
+                            tmp_list_k.append(k)
+                            #tmp_list_v.append(v)
+                            json_dict[k] = v
+                        if k not in master_keys:
+                            master_keys.append(k)
+                        list_all_v.append(v)
+                        list_all_k.append(k)
 
-                        # count_x += 1
-                        trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
-                        trace_list.append(trace)
-                    output_txt.write("\n")
-                    output_json.write(json.dumps(json_dict))
-                    output_json.close()
-                except NameError:
-                    depth_file = None
-                    print("error: samtools depth file not correct -> ",
-                          depth_file)
+                    # COVERAGE PERCENTAGE #
+                    output_txt.write(
+                        "Read name: " + fn + "\nReference sequence\t"
+                                             "Coverage percentage\t"
+                                             "Mean mapping depth\t"
+                                             "Sequence length\t"
+                                             "Species name\t"
+                                             "Plasmid name\n")
+                    # count_x=0
+                    for element in tmp_list_k:
+                        output_txt.write(
+                            str(element) + "\t")  # outputs ref sequence
+                        output_txt.write(
+                            str(percentage_basescovered[
+                                    element]) + "\t")  # outputs coverage percentage
+                        output_txt.write(str(mean[element]) + "\t")
+                        # outputs mean mapping depth
+                        output_txt.write("{}\t{}\t{}\n".format(str(metadata[
+                                                                       element][2]), " ".join(str(metadata[element][
+                                                                                                      0]).split("_")), str(metadata[element][1])))
+
+                    # count_x += 1
+                    trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
+                    trace_list.append(trace)
+                output_txt.write("\n")
+                output_json.write(json.dumps(json_dict))
+                output_json.close()
+                #except NameError:
+                #    depth_file = None
+                #    print("error: samtools depth file not correct -> ",
+                #          depth_file)
 
     # Graphical outputs #
     bar_plot(trace_list, float(args.cutoff_number), master_keys,
