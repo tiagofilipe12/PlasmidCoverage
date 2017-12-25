@@ -478,12 +478,9 @@ def main():
     args = parser.parse_args()
 
     # Lists and dictionaries
-
-    plasmid_length = {}
     strain_list = []
-    # pidx2name = {}
     dblist = []
-    # sam_dict = {}
+    # args
     plasmids_dir = args.plasmid_dir
     reads_dir = args.read_dir
 
@@ -497,6 +494,7 @@ def main():
     # Process plasmids references into a single fasta
 
     if not args.indexes:
+        plasmid_length = {}
         maindb, count_entries = plasmidprocessing(dblist, plasmids_dir,
                                                   plasmid_length, args.output_name)
 
@@ -515,7 +513,12 @@ def main():
         #  fasta
         maindb_path = os.path.join(args.indexes + "fasta/" + "samtools.fasta")
         indexes = True
-        # TODO generate plasmid_length dict as a file that is loaded here
+        # import json_length from json file
+        length_import = open("json/reads_sample_result_length.json", "r")
+        json_length = json.loads(length_import)
+        print(json_length)
+        print(len(json_length))
+        print("end")
 
     # READS#
     output_txt = open(args.output_name + ".txt", "w")
