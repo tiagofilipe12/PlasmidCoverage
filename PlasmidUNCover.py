@@ -514,7 +514,9 @@ def main():
         maindb_path = os.path.join(args.indexes + "fasta/" + "samtools.fasta")
         indexes = True
         # import json_length from json file
-        length_import = open("json/reads_sample_result_length.json", "r")
+        script_dir = os.path.dirname(__file__)
+        rel_path = "json/reads_sample_result_length.json"
+        length_import = open(os.path.join(script_dir, rel_path), "r")
         json_length = json.loads(length_import)
         print(json_length)
         print(len(json_length))
