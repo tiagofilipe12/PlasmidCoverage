@@ -506,7 +506,7 @@ def main():
         deltemp(os.path.join(plasmids_dir + "fasta/"))
 
     # Create Bowtie Idx files for plasmid references
-        idx_file = createbowtieidx(maindb, plasmids_dir, args.threads, ERRO!)
+        idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
         indexes = False
     else:
         idx_file = os.path.join(args.indexes + "bowtie2idx/" +
