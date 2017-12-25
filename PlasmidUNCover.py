@@ -519,7 +519,7 @@ def main():
         print(os.path.join(script_dir, rel_path))
         length_import = open(os.path.join(script_dir, rel_path))
         print(length_import)
-        json_length = json.loads(length_import)
+        json_length = json.load(length_import)
         print(json_length)
         print(len(json_length))
         print("end")
