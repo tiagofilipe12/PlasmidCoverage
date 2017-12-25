@@ -190,6 +190,28 @@ def deltemp(directory):
             os.remove(os.path.join(directory, f))
 
 def depthfilereader(depth_file, plasmid_length):
+    '''
+    Function that parse samtools depth file
+
+    Parameters
+    ----------
+    depth_file: str
+        the path to depth file for each sample
+    plasmid_length: dict
+        a dictionary that stores length of all plasmids in fasta given as input
+
+    Returns
+    -------
+    percentage_basescovered: dict
+            stores the percentage of the total sequence of a
+            reference/accession (plasmid) in a dictionary
+    mean: dict
+        Stores the mean coverage for each reference/accession (plasmid) in a
+        dictionary
+    metadata: dict
+        Stores information of species, plasmid_name and sequence length for
+        each plasmid key in a List
+    '''
     print("depth_file_reading", depth_file)
     metadata = {}
     depth_info = open(depth_file, "r")
@@ -299,6 +321,11 @@ def plasmidprocessing(dblist, plasmids_path, plasmid_length, output_name):
     # Instead reads will now be matched against the best scoring plasmid in
     # the entire db#
     main_db = fastaconcatenation(dblist, output_name, plasmids_path)
+    # crates a length_json file that is used when index file is used instead
+    #  of fasta files.
+    length_json = open(output_name + "_length.json", "w")
+    length_json.write(json.dumps(plasmid_length))
+
     return main_db, count_entries
 
 def mapper(pair, idx_file, reads_file, threads, max_k, sam_file, maindb_path,
@@ -472,14 +499,14 @@ def main():
     if not args.indexes:
         maindb, count_entries = plasmidprocessing(dblist, plasmids_dir,
                                                   plasmid_length, args.output_name)
-        print(count_entries)
+
         maindb_path = os.path.join(plasmids_dir + "fasta/" + maindb)
 
         # Deletes temporary fastas created during plasmidprocessing function
         deltemp(os.path.join(plasmids_dir + "fasta/"))
 
     # Create Bowtie Idx files for plasmid references
-        idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
+        idx_file = createbowtieidx(maindb, plasmids_dir, args.threads, ERRO!)
         indexes = False
     else:
         idx_file = os.path.join(args.indexes + "bowtie2idx/" +
@@ -488,6 +515,7 @@ def main():
         #  fasta
         maindb_path = os.path.join(args.indexes + "fasta/" + "samtools.fasta")
         indexes = True
+        # TODO generate plasmid_length dict as a file that is loaded here
 
     # READS#
     output_txt = open(args.output_name + ".txt", "w")
@@ -592,8 +620,7 @@ def main():
                             # outputs mean mapping depth
                             output_txt.write("{}\t{}\t{}\n".format(str(metadata[
                                 element][2]), " ".join(str(metadata[element][
-                                    0]).split("_")),
-                                str(metadata[element][1])))
+                                0]).split("_")), str(metadata[element][1])))
 
                         # count_x += 1
                         trace = go.Bar(x=list_all_k, y=list_all_v, name=fn)
