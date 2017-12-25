@@ -517,7 +517,7 @@ def main():
         rel_path = "json/reads_sample_result_length.json"
         length_import = open(os.path.join(script_dir, rel_path))
         plasmid_length = json.load(length_import)
-        count_entries = len(json_length)
+        count_entries = len(plasmid_length)
 
     # READS#
     output_txt = open(args.output_name + ".txt", "w")
