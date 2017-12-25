@@ -509,20 +509,15 @@ def main():
     else:
         idx_file = os.path.join(args.indexes + "bowtie2idx/" +
                                 "bowtie2.idx")
-        count_entries = 11371 # TODO hardcoded to max number of entries in db
         #  fasta
         maindb_path = os.path.join(args.indexes + "fasta/" + "samtools.fasta")
         indexes = True
         # import json_length from json file
         script_dir = os.path.dirname(__file__)
         rel_path = "json/reads_sample_result_length.json"
-        print(os.path.join(script_dir, rel_path))
         length_import = open(os.path.join(script_dir, rel_path))
-        print(length_import)
         json_length = json.load(length_import)
-        print(json_length)
-        print(len(json_length))
-        print("end")
+        count_entries = len(json_length)
 
     # READS#
     output_txt = open(args.output_name + ".txt", "w")
