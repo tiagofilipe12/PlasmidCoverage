@@ -516,7 +516,9 @@ def main():
         # import json_length from json file
         script_dir = os.path.dirname(__file__)
         rel_path = "json/reads_sample_result_length.json"
-        length_import = open(os.path.join(script_dir, rel_path), "r")
+        print(os.path.join(script_dir, rel_path))
+        length_import = open(os.path.join(script_dir, rel_path))
+        print(length_import)
         json_length = json.loads(length_import)
         print(json_length)
         print(len(json_length))
