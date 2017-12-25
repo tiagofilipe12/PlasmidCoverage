@@ -571,6 +571,8 @@ def main():
 
                 # Compute descriptive statistics and prints to tabular txt file
                 print(plasmid_length)
+
+                depth_file = "reads_sample/SRR3999081/reads_sample_result_SRR3999081.sorted.bam_depth.txt"
                 print(depth_file)
                 try:
                     percentage_basescovered, mean, metadata = depthfilereader(
