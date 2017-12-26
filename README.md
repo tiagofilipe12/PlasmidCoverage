@@ -1,4 +1,4 @@
-# PlasmidCoverage_Sdb.py
+# PlasmidCoverage
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/4ecf8dfe775746f4bc5f3d154a7207df)](https://www.codacy.com/app/tiagofilipe12/PlasmidCoverage?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tiagofilipe12/PlasmidCoverage&amp;utm_campaign=Badge_Grade)
 
