@@ -8,7 +8,7 @@ PlasmidUNCover.py is a script that is intended to allow users to map reads
 against a plasmid database (provided in [indexes folder](https://github.com/tiagofilipe12/PlasmidCoverage/releases/download/v1.0.0/indexes.tar.gz))
 . Then, the resulting accession numbers that have a percentage of covered 
 base pairs higher than the specified cutoff value will be reported into a 
-.json file which may be imported by [Plasmid Atlas](www.patlas.site).
+.json file which may be imported by [Plasmid Atlas](http://www.patlas.site).
 
 #### Other uses
 
