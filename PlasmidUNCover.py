@@ -739,8 +739,8 @@ def main():
         indexes = True
         # import json_length from json file
         script_dir = os.path.dirname(__file__)
-        rel_path = "json/reads_sample_result_length.json"
-        length_import = open(os.path.join(script_dir, rel_path))
+        rel_path = "/json/reads_sample_result_length.json"
+        length_import = open(script_dir + rel_path)
         plasmid_length = json.load(length_import)
         count_entries = len(plasmid_length)
 
