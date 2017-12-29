@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## Last update: 14/6/2017
+## Last update: 29/12/2017
 ## Author: T.F. Jesus
 ## This version runs with bowtie2 build 2.2.9, seqtk (1.2-r95-dirty) and samtools, with multithreading for bowtie2-build
 ## This script filters reads, given a plasmid database, allowing for example to separate both chromossomal reads from plasmid reads.

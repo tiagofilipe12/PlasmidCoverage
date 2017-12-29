@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 
 """
-Last update: 21/4/2017
+Last update: 29/12/2017
 Author: T.F. Jesus
-This script takes json fils and compares them using output jsons from mashix.
+This script takes json files and compares them using output jsons from mashix.
 Please note that it only compares two json files
 """
 
@@ -12,8 +12,20 @@ import os
 import json
 
 
-## obtains a list with two json dictionaries
 def load_jsons(jsonfiles):
+    '''
+    Loads two json files to a list using json.load()
+    Parameters
+    ----------
+    jsonfiles: list
+        A list of json files
+
+    Returns
+    -------
+    list_of_json: list
+        A list of two dictionaries, one for each file loaded
+
+    '''
     list_of_json = []
     for json_f in jsonfiles:
         with open(json_f, "r") as data_file:
@@ -23,7 +35,22 @@ def load_jsons(jsonfiles):
 
 
 def range_conversion(x, c, d):
-    ## set initial range between [-1,1]
+    '''
+    Function to convert an initial range of [-1,1] to any custom range desired
+    Parameters
+    ----------
+    x: float
+        The value to convert
+    c: float
+        new range min value
+    d: float
+        new range max value
+    Returns
+    -------
+    y: float
+        the converted x value to the new range
+
+    '''
     a = -1
     b = 1
     y = (x - a) * float(d - c) / (b - a) + c
@@ -34,6 +61,26 @@ def range_conversion(x, c, d):
 
 ## function that calculates the differences between the two json files provided as input
 def diff_jsons(list_of_json):
+    '''
+    Function that creates a dictionary with the differences between the
+    dictionaries of both files. This functions allows to check the
+    presence/absence of accession numbers in both files and if a given
+    accession is present in both json files it will retrieve the difference
+    between them. This allows to know if a given accession is more likely to
+    be in one read set or another (very roughly).
+    Parameters
+    ----------
+    list_of_json: list
+        A list of two dictionaries, one for each input file
+
+    Returns
+    -------
+    temp_dict: dict
+        This returns a dictionary with the differences between both
+        dictionaries that were taken as inputs for this function with the
+        list_of_json variable.
+
+    '''
     temp_list_k = []
     temp_dict = {}
     for xcounter, json_dict in enumerate(list_of_json):
