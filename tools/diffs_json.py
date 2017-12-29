@@ -119,9 +119,9 @@ def diff_jsons(list_of_json):
 def main():
     parser = argparse.ArgumentParser(
         description="Compares two json files with coverage percentage")
-    parser.add_argument('-i', '--input_jsons', dest='inputfile', nargs=2,
+    parser.add_argument("-i", "--input_jsons", dest="inputfile", nargs=2,
                         required=True,
-                        help='Provide the input json files of interest.')
+                        help="Provide the input json files of interest.")
     # parser.add_argument('-c','--cutoff', dest='cutoff', default=0,
     # help='Provide the cutoff value used \
     #	for the minimum coverage allowed to be outputed to json files. This
