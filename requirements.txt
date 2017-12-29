@@ -1,4 +1,4 @@
-plotly==2.0.9
-prettytable==0.7.2
-biopython==1.69
-termcolor==1.1.0
+plotly>=2.0.9
+prettytable>=0.7.2
+biopython>=1.69
+termcolor>=1.1.0
