@@ -38,9 +38,9 @@ def master_fasta(fastas, output_tag):
 def createbowtieidx(filename, threads):
     check = ""
     idx_file = os.path.splitext(filename)[0] + '.idx'
-    print idx_file
+    print(idx_file)
     fasta_file = os.path.splitext(filename)[0] + '.fas'
-    print fasta_file
+    print(fasta_file)
     list_idxfiles = [idx_file + ".1.bt2", idx_file + ".2.bt2",
                      idx_file + ".3.bt2", idx_file + ".4.bt2",
                      idx_file + ".rev.2.bt2", idx_file + ".rev.1.bt2"]
@@ -55,14 +55,14 @@ def createbowtieidx(filename, threads):
             stdout=PIPE, stderr=PIPE)
         p.wait()
     else:
-        print idx_file + " already exists!"
+        print(idx_file + " already exists!")
     return idx_file
 
 
 ##Runs bowtie and samtools to retrieve either the plasmid filtered sequences or chromossomal sequences from reads making a unique file with plasmid or chromossomes reads only
 def mapper(idx_file, read, threads, main_file, output_name, unmapped):
     ## specify bam and sam file names
-    print read
+    print(read)
     sam_file = os.path.basename(read).split(".")[0] + "_" + output_name + ".sam"
     bam_file = sam_file[:-3] + 'bam'
     ## Runs the three commands necessary to have only unmapped reads
@@ -79,20 +79,20 @@ def mapper(idx_file, read, threads, main_file, output_name, unmapped):
         '-S',
         sam_file
     ]
-    print "1) " + " ".join(btc)
+    print("1) " + " ".join(btc))
     proc1 = Popen(btc, stdout=PIPE, stderr=PIPE)
     proc1.wait()
     err = proc1.communicate()
-    print err
+    print(err)
     regex_match = re.search('[\d]{1}[.]{1}[\d]{2}% overall alignment rate', err)
     alignment_rate = regex_match.group(0).split('%')[0]
     if alignment_rate > 0.00:
         sf = ["samtools", "faidx", main_file]
-        print "2) " + " ".join(sf)
+        print("2) " + " ".join(sf))
         proc2 = Popen(sf, stdout=PIPE, stderr=PIPE)
         proc2.wait()
         out, err = proc2.communicate()
-        print err
+        print(err)
         if unmapped:
             sv = [
                 'samtools',
@@ -116,7 +116,7 @@ def mapper(idx_file, read, threads, main_file, output_name, unmapped):
                   sam_file,
                   ]
         ## all reads mapped against the database provided
-        print "3) " + " ".join(sv)
+        print("3) " + " ".join(sv))
         proc3 = Popen(sv, stdout=PIPE, stderr=PIPE)
         proc3.wait()
         # out,err= proc3.communicate()
