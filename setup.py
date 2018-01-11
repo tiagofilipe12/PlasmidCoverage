@@ -19,7 +19,7 @@ setup(
     author="Tiago F. Jesus",
     author_email="tiagojesus@medicina.ulisboa.pt",
     description="Script to obtain plasmid id from WGS data using bowtie2 to "
-                "map Edit Add topics ",
+                "map",
     entry_points={
         "console_scripts": [
             "PlasmidUNCover.py = plasmiduncover.PlasmidUNCover:main",
