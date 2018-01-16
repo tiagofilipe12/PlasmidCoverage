@@ -19,6 +19,11 @@ from datetime import datetime
 import json
 from termcolor import cprint
 
+class FullPaths(argparse.Action):
+    """Expand user- and relative-paths"""
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, os.path.abspath(os.path.expanduser(values)))
+
 def search_substing(string):
     '''
     A function to search for a substring containing the plasmid name
@@ -657,18 +662,15 @@ def main():
         description="Outputs a coverage percentage for each Plasmid gbk in "
                     "PlasmidDir using the reads presented in the directory "
                     "structure in ReadsDir")
-    parser.add_argument("-p", "--plasmid", dest="plasmid_dir",
+    parser.add_argument("-p", "--plasmid", dest="plasmid_dir", action=FullPaths,
                         help="Provide the path to the directory containing "
                              "plasmid fastas")
-    parser.add_argument("-idx", "--indexes_folder", dest="indexes",
+    parser.add_argument("-idx", "--indexes_folder", dest="indexes", action=FullPaths,
                         help="Provide the path to indexes folders")
     parser.add_argument("-r", "--read", dest="read_dir", required=True,
+                        action=FullPaths,
                         help="Provide the path to the directory containing "
-                             "reads fastas, but do not use the suffix of all "
-                             "the 6 files. Use something like "
-                             "'/path/to/bowtie.idx', "
-                             "since the bowtie will recognize all files "
-                             "associated with that index file")
+                             "reads fastq files")
     parser.add_argument("-t", "--threads", dest="threads", default="1",
                         help="Specify the number of threads to be used by "
                              "bowtie2")
@@ -712,7 +714,7 @@ def main():
     # check the format of input directories to -r and -p options
     if args.plasmid_dir:
         if not plasmids_dir.endswith("/"):
-            plasmid_dir += "/"
+            plasmids_dir += "/"
     if not reads_dir.endswith("/"):
         reads_dir += "/"
 
@@ -751,6 +753,8 @@ def main():
     trace_list = []
     counter = 0  # counter used to control output file
     file_reset = False
+    print(reads_dir)
+    print(list(os.walk(reads_dir)))
     for dirname, dirnames, filenames in os.walk(reads_dir):
         for subdirname in dirnames:
 
