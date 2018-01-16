@@ -710,6 +710,7 @@ def main():
     # args
     plasmids_dir = args.plasmid_dir
     reads_dir = args.read_dir
+    index_path = args.indexes
 
     # check the format of input directories to -r and -p options
     if args.plasmid_dir:
@@ -717,10 +718,12 @@ def main():
             plasmids_dir += "/"
     if not reads_dir.endswith("/"):
         reads_dir += "/"
+    if not index_path.endswith("/"):
+        index_path += "/"
 
     # Process plasmids references into a single fasta
 
-    if not args.indexes:
+    if not index_path:
         plasmid_length = {}
         maindb, count_entries = plasmidprocessing(dblist, plasmids_dir,
                                                   plasmid_length, args.output_name)
@@ -734,10 +737,10 @@ def main():
         idx_file = createbowtieidx(maindb, plasmids_dir, args.threads)
         indexes = False
     else:
-        idx_file = os.path.join(args.indexes + "bowtie2idx/" +
+        idx_file = os.path.join(index_path + "bowtie2idx/" +
                                 "bowtie2.idx")
         #  fasta
-        maindb_path = os.path.join(args.indexes + "fasta/" + "samtools.fasta")
+        maindb_path = os.path.join(index_path + "fasta/" + "samtools.fasta")
         indexes = True
         # import json_length from json file
         script_dir = os.path.dirname(__file__)
