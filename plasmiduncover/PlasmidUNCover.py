@@ -756,8 +756,6 @@ def main():
     trace_list = []
     counter = 0  # counter used to control output file
     file_reset = False
-    print(reads_dir)
-    print(list(os.walk(reads_dir)))
     for dirname, dirnames, filenames in os.walk(reads_dir):
         for subdirname in dirnames:
 
