@@ -31,8 +31,8 @@ and uncompress it.
 
 ### Using github release
 
-* Second, download the [latest release](https://github.com/tiagofilipe12/PlasmidCoverage/releases/tag/v1.0.3) of this script
-(don't forget to download [indexes folder](https://github.com/tiagofilipe12/PlasmidCoverage/releases/download/v1.0.0/indexes.tar.gz))
+* Second, download the [latest release](https://github.com/tiagofilipe12/PlasmidCoverage/releases/tag/v1.0.4) of this script
+(don't forget to download [indexes folder](https://github.com/tiagofilipe12/PlasmidCoverage/releases/download/v1.0.4/indexes.tar.gz))
 
 * `pip3 install -r requirements.txt`
 
