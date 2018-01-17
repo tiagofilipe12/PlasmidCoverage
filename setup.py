@@ -7,7 +7,7 @@ VERSION = plasmiduncover.__version__
 
 setup(
     name="plasmiduncover",
-    version="1.0.3",
+    version="1.0.4",
     packages=["plasmiduncover", "plasmiduncover.tools"],
     install_requires=[
         "plotly>=2.0.9",
