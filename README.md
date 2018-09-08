@@ -2,6 +2,13 @@
 
 [![Codacy Badge](https://api.codacy.com/project/badge/Grade/4ecf8dfe775746f4bc5f3d154a7207df)](https://www.codacy.com/app/tiagofilipe12/PlasmidCoverage?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=tiagofilipe12/PlasmidCoverage&amp;utm_campaign=Badge_Grade)
 
+## Disclaimer
+
+This script is no longer supported, if you are interested in the development of this pipeline check one of the following projects:
+
+- [FlowCraft](https://github.com/assemblerflow/flowcraft)
+- [pATLASflow](https://github.com/tiagofilipe12/pATLASflow)
+
 ## About
 
 PlasmidUNCover.py is a script that is intended to allow users to map reads 
